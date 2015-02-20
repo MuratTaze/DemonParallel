@@ -5,7 +5,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class Dataset {
-	HashMap<String, HashSet<String>> map;
+	private HashMap<String, HashSet<String>> map;
+
+	public HashMap<String, HashSet<String>> getMap() {
+		return map;
+	}
+
+	public void setMap(HashMap<String, HashSet<String>> map) {
+		this.map = map;
+	}
 
 	public Dataset(String filename) throws IOException {
 		super();
