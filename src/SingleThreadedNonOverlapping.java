@@ -19,20 +19,23 @@ public class SingleThreadedNonOverlapping {
 	 * 9: return C
 	 */
 
-	static ArrayList<Node> communityList;/*
-										 * this map stores id of each node and
-										 * its community
-										 */
-
+	/*
+	 * this map stores id of each node and its community
+	 */
+	private ArrayList<Node> communityList;	
+	
+	
 	public static void main(String[] args) throws IOException {
 		Dataset data = new Dataset("Email-Enron.txt");
 		HashMap<String, HashSet<String>> map = data.map;
 		initiliaze(map);
-		Collections.shuffle(communityList);
-		for (Node v : communityList) {
-			HashSet<String> egoMinusEgo = map.get(v.getRealId());
-			labelPropagation(v, egoMinusEgo);
-		}
+		do {
+			Collections.shuffle(communityList);
+			for (Node v : communityList) {
+				HashSet<String> egoMinusEgo = map.get(v.getRealId());
+				labelPropagation(v, egoMinusEgo);
+			}
+		} while(!isTerminated(communityList, map));
 	}
 
 	private static void initiliaze(HashMap<String, HashSet<String>> map) {
