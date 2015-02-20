@@ -3,7 +3,7 @@ import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
-public class Demon extends Storage implements StartPoint {
+public class DemonParallel extends Storage implements StartPoint {
 	@Shared
 	double[] array = new double[3];/*this will be the graph, later.*/
 
@@ -48,7 +48,7 @@ public class Demon extends Storage implements StartPoint {
 
 	public static void main(String[] args) {
 		String[] nodes = new String[] { "localhost", "localhost", "localhost" };
-		PCJ.deploy(Demon.class, Demon.class, nodes);
+		PCJ.deploy(DemonParallel.class, DemonParallel.class, nodes);
 
 	}
 

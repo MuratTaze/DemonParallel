@@ -3,17 +3,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map.Entry;
 
 public class Dataset {
-	public static void main(String[] args) throws IOException {
-		HashMap<String, HashSet<String>> map = new HashMap<String, HashSet<String>>();/*
-																					 * network
-																					 * itself
-																					 */
+	HashMap<String, HashSet<String>> map;
+
+	public Dataset(String filename) throws IOException {
+		super();
+		// TODO Auto-generated constructor stub
+
+		map = new HashMap<String, HashSet<String>>();/*
+													 * network itself
+													 */
 
 		// Create object of FileReader
-		FileReader inputFile = new FileReader("Email-Enron.txt");
+		FileReader inputFile = new FileReader(filename);
 
 		// Instantiate the BufferedReader Class
 		BufferedReader bufferReader = new BufferedReader(inputFile);
@@ -43,17 +46,5 @@ public class Dataset {
 		// Close the buffer reader
 		bufferReader.close();
 
-		/* print the hashmap */
-		for (Entry<String, HashSet<String>> entry : map.entrySet()) {
-
-			String key = entry.getKey();
-
-			HashSet<String> values = entry.getValue();
-
-			System.out.println("Key = " + key);
-
-			System.out.println("Values = " + values);
-
-		}
 	}
 }

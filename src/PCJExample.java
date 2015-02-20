@@ -3,7 +3,7 @@ import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
-public class Test extends Storage implements StartPoint {
+public class PCJExample extends Storage implements StartPoint {
 	@Shared
 	double[] array = new double[20];
 
@@ -48,7 +48,7 @@ public class Test extends Storage implements StartPoint {
 		// TODO Auto-generated method stub
 
 		String[] nodes = new String[] { "localhost", "localhost", "localhost" };
-		PCJ.deploy(Test.class, Test.class, nodes);
+		PCJ.deploy(PCJExample.class, PCJExample.class, nodes);
 	}
 
 }
