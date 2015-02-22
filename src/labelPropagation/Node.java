@@ -1,3 +1,4 @@
+package labelPropagation;
 import java.io.Serializable;
 
 public class Node implements Serializable, Comparable<Node> {
