@@ -4,21 +4,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
-
 public class LabelPropagation {
-	private ArrayList<Node> communityList;	
+	private ArrayList<Node> communityList;
 	private HashMap<String, HashSet<String>> map;
+
 	public LabelPropagation() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
-	public  void labelPropagation(Node v,
-			HashSet<String> egoMinusEgoNetwork) {
-		v.setCommunityId(findMostCommonlyUsedId(egoMinusEgoNetwork));
-	}
 
-	public  String findMostCommonlyUsedId(
-			HashSet<String> egoMinusEgoNetwork) {
+	public String findMostCommonlyUsedId(HashSet<String> egoMinusEgoNetwork) {
 		/* iterate over ego minus ego network and count labels(communities) */
 		HashMap<String, Integer> countList = new HashMap<String, Integer>(
 				egoMinusEgoNetwork.size());
@@ -38,19 +33,8 @@ public class LabelPropagation {
 
 		return null;
 	}
-	public  void initiliaze(HashMap<String, HashSet<String>> map) {
-		this.map=map;
-		/*
-		 * initially all nodes belong to themselves as community.
-		 */
-		communityList = new ArrayList<Node>(map.size());
-		for (Entry<String, HashSet<String>> entry : map.entrySet()) {
-			String key = entry.getKey();
-			communityList.add(new Node(key, key));
-		}
 
-	}
-	public  String getCommunityId(String nodeId) {
+	public String getCommunityId(String nodeId) {
 		/* returns the community id of node */
 		for (Node v : communityList) {
 			if (v.getRealId().equals(nodeId))
@@ -59,18 +43,63 @@ public class LabelPropagation {
 
 		return null;
 	}
-	public void proceedLP(){
+
+	public ArrayList<Node> getCommunityList() {
+		return communityList;
+	}
+
+	public HashMap<String, HashSet<String>> getMap() {
+		return map;
+	}
+
+	public boolean initiliaze(HashMap<String, HashSet<String>> map) {
+		if (map == null)
+			return false;
+		this.map = map;
+
+		/*
+		 * initially all nodes belong to themselves as community.
+		 */
+		communityList = new ArrayList<Node>(map.size());
+		for (Entry<String, HashSet<String>> entry : map.entrySet()) {
+			String key = entry.getKey();
+			communityList.add(new Node(key, key));
+		}
+		return true;
+	}
+
+	public boolean isTerminated() {
+		for (Node v : communityList) {
+			if (findMostCommonlyUsedId(map.get(v.getRealId())) == v
+					.getCommunityId()) {
+				continue;/* do nothing */
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public void labelPropagation(Node v, HashSet<String> egoMinusEgoNetwork) {
+		v.setCommunityId(findMostCommonlyUsedId(egoMinusEgoNetwork));
+	}
+
+	public void proceedLP() {
 		do {
 			Collections.shuffle(communityList);
 			for (Node v : communityList) {
 				HashSet<String> egoMinusEgo = map.get(v.getRealId());
 				labelPropagation(v, egoMinusEgo);
 			}
-		} while(!isTerminated(communityList, map));
+		} while (!isTerminated());
+
 	}
-	public boolean isTerminated(ArrayList<Node> communityList2,
-			HashMap<String, HashSet<String>> map2) {
-		// TODO Auto-generated method stub
-		return false;
+
+	public void setCommunityList(ArrayList<Node> communityList) {
+		this.communityList = communityList;
+	}
+
+	public void setMap(HashMap<String, HashSet<String>> map) {
+		this.map = map;
 	}
 }

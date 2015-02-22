@@ -1,6 +1,10 @@
 import java.io.Serializable;
 
-public class Node implements Serializable{
+public class Node implements Serializable, Comparable<Node> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4010598725887800685L;
 	private String realId;
 	private String communityId;
 
@@ -34,5 +38,16 @@ public class Node implements Serializable{
 
 	public void setRealId(String realId) {
 		this.realId = realId;
+	}
+
+	
+	@Override
+	public int compareTo(Node o) {
+		if (this.getCommunityId().equals( o.getCommunityId()))
+			return 0;
+		if (Integer.parseInt(getCommunityId())>Integer.parseInt( o.getCommunityId()))
+			return 1;
+		else
+			return -1;
 	}
 }
