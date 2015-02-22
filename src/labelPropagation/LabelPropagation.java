@@ -8,10 +8,17 @@ import java.util.Map.Entry;
 public class LabelPropagation {
 	private ArrayList<Node> communityList;
 	private HashMap<String, HashSet<String>> map;
-
+	private int t;
+	private int numberOfIterations;
 	public LabelPropagation() {
 		super();
-		// TODO Auto-generated constructor stub
+		t=100;/*max # of iterations as default*/
+	}
+
+	public LabelPropagation(HashMap<String, HashSet<String>> map, int t) {
+		super();
+		this.map = map;
+		this.t = t;
 	}
 
 	public String findMostCommonlyUsedId(HashSet<String> egoMinusEgoNetwork) {
@@ -66,6 +73,7 @@ public class LabelPropagation {
 			String key = entry.getKey();
 			communityList.add(new Node(key, key));
 		}
+		numberOfIterations=0;
 		return true;
 	}
 
@@ -92,7 +100,8 @@ public class LabelPropagation {
 				HashSet<String> egoMinusEgo = map.get(v.getRealId());
 				labelPropagation(v, egoMinusEgo);
 			}
-		} while (!isTerminated());
+			numberOfIterations++;
+		} while ((!isTerminated())||(numberOfIterations!=t));
 
 	}
 
