@@ -1,54 +1,102 @@
 package demon;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import labelPropagation.GraphLoader;
+import labelPropagation.LabelPropagation;
+import labelPropagation.LocalNetwork;
+
 import org.pcj.PCJ;
-import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
 public class DemonParallel extends Storage implements StartPoint {
-	@Shared
-	double[] array = new double[3];/*this will be the graph, later.*/
+	CopyOnWriteArrayList<HashSet<String>> globalCommunities = null;
 
 	@Override
-	public void main() {
-		double[] arrayLocal = new double[3];/*this will be the duplication of network*/
-		int numberOfIterations = 1;
-		while (numberOfIterations > 0) {
-			PCJ.barrier();/*Synchronize threads*/
+	public void main() throws IOException {
+		GraphLoader graph = null;
+		graph = new GraphLoader("traininGraph.txt");
 
-			/* master node starts the process */
-			if (PCJ.myId() == 0) {
-				arrayLocal[0] = 1;/*
-								 * here we will perform label propagation
-								 * algorithm
-								 */
-				PCJ.broadcast("array", arrayLocal);
+		LocalNetwork localNetwork = new LocalNetwork(graph.partition(
+				PCJ.myId(), PCJ.threadCount()));
+		for (Entry<String, HashSet<String>> entry : localNetwork
+				.getLocalNetwork().entrySet()) {
+			HashMap<String, HashSet<String>> e = egoMinusEgo(entry.getKey(),
+					localNetwork.getLocalNetwork());
+			LabelPropagation lp = new LabelPropagation();
+			lp.initiliaze(e);
+			lp.proceedLP();
+			ArrayList<HashSet<String>> localCommunities = lp
+					.constructCommunities();
+			for (Iterator<HashSet<String>> iterator = localCommunities
+					.iterator(); iterator.hasNext();) {
+				HashSet<String> localCommunity = (HashSet<String>) iterator
+						.next();
+				localCommunity.add(entry.getKey());
+				merge(localCommunity, 0.30);
 			}
 
-			/* slaves */
-			for (int j = 1; j < PCJ.threadCount(); j++) {
-				if (PCJ.myId() == j) {
-					arrayLocal[j] = 9 * j;/*
-										 * here we will perform label
-										 * propagation algorithm
-										 */
-					PCJ.waitFor("array", PCJ.myId());/* wait for updated network */
-					array[j] = arrayLocal[j];/*transfer data from local network to global network*/
-					PCJ.broadcast("array", array);/* commit modifications */
+		}
+		System.out.println(globalCommunities);
+	}
+
+	private void merge(HashSet<String> localCommunity, double percantage) {
+		if (globalCommunities == null) {
+			globalCommunities = new CopyOnWriteArrayList<HashSet<String>>();
+			globalCommunities.add(localCommunity);
+		} else {
+			for (Iterator<HashSet<String>> iterator = globalCommunities
+					.iterator(); iterator.hasNext();) {
+				HashSet<String> temp = (HashSet<String>) iterator.next();
+				HashSet<String> temp2 = new HashSet<String>(temp);
+				double size1 = temp2.size();
+				temp2.retainAll(localCommunity);
+				if (temp2.size() / size1 >= percantage) {
+					temp.addAll(localCommunity);// join them
+					return;
+				} else {
+
 				}
 			}
-
-			numberOfIterations--;
-		}
-		PCJ.barrier();
-		if (PCJ.myId() == 0) {
-			for (int i = 0; i < array.length; i++) {
-				System.out.println(array[i]);
-			}
+			globalCommunities.add(localCommunity);// as a seperate
+			// community
 		}
 	}
 
+	private HashMap<String, HashSet<String>> egoMinusEgo(String key,
+			HashMap<String, HashSet<String>> localGraph) {
+		HashMap<String, HashSet<String>> result = new HashMap<String, HashSet<String>>();
+
+		HashSet<String> neighborList = localGraph.get(key);
+		for (Iterator<String> iterator = neighborList.iterator(); iterator
+				.hasNext();) {
+			String neighbor = (String) iterator.next();
+			if (localGraph.get(neighbor) != null) {
+				result.put(neighbor,
+						intersection(localGraph.get(neighbor), neighborList));
+			} else {
+				// remote access required
+			}
+		}
+		return result;
+	}
+
+	private HashSet<String> intersection(HashSet<String> set1,
+			HashSet<String> set2) {
+		HashSet<String> intersection = new HashSet<String>(set1);
+		intersection.retainAll(set2);
+		return intersection;
+	}
+
 	public static void main(String[] args) {
-		String[] nodes = new String[] { "localhost", "localhost", "localhost" };
+		String[] nodes = new String[] { "localhost" };
 		PCJ.deploy(DemonParallel.class, DemonParallel.class, nodes);
 
 	}

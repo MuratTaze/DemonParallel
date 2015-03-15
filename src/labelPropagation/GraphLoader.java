@@ -1,11 +1,13 @@
 package labelPropagation;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 
-public class Dataset {
+public class GraphLoader {
 	private HashMap<String, HashSet<String>> map;
 
 	public HashMap<String, HashSet<String>> getMap() {
@@ -16,7 +18,7 @@ public class Dataset {
 		this.map = map;
 	}
 
-	public Dataset(String filename) throws IOException {
+	public GraphLoader(String filename) throws IOException {
 		super();
 		// TODO Auto-generated constructor stub
 
@@ -55,5 +57,35 @@ public class Dataset {
 		// Close the buffer reader
 		bufferReader.close();
 
+	}
+
+	public EgoNetwork[] partition(int threadId, int numberofThreads) {
+		int counter = 0;
+		int capacity = (int) Math.ceil(((double) map.size())
+				/ ((double) numberofThreads));
+		int start = (int) (capacity * threadId);
+		int end = (int) (start + capacity);
+
+		EgoNetwork[] egoNetworks = new EgoNetwork[(int) capacity];
+
+		for (Entry<String, HashSet<String>> entry : map.entrySet()) {
+			if (start <= counter && counter < end) {
+				if (egoNetworks[hash(Integer.parseInt(entry.getKey()), capacity)] == null) {
+					egoNetworks[hash(Integer.parseInt(entry.getKey()), capacity)] = new EgoNetwork();
+				}
+				HashMap<String, HashSet<String>> temp = new HashMap<String, HashSet<String>>();
+				temp.put(entry.getKey(), entry.getValue());
+				egoNetworks[hash(Integer.parseInt(entry.getKey()), capacity)]
+						.getSubGraph().add(temp);
+
+			}
+			counter++;
+		}
+		return egoNetworks;
+	}
+
+	public int hash(int vertexId, int capacity) {
+
+		return (vertexId & 0x7fffffff) % capacity;
 	}
 }

@@ -44,11 +44,13 @@ public class Node implements Serializable, Comparable<Node> {
 	
 	@Override
 	public int compareTo(Node o) {
-		if (this.getCommunityId().equals( o.getCommunityId()))
+		/*
+		if (Integer.parseInt(this.getCommunityId())==Integer.parseInt(o.getCommunityId()))
 			return 0;
-		if (Integer.parseInt(getCommunityId())>Integer.parseInt( o.getCommunityId()))
+		if (Integer.parseInt(this.getCommunityId())>Integer.parseInt(o.getCommunityId()))
 			return 1;
 		else
-			return -1;
+			return -1;*/
+		return this.getCommunityId().compareTo(o.getCommunityId());
 	}
 }

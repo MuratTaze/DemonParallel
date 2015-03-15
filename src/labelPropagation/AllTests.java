@@ -3,9 +3,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.junit.Test;
 
@@ -20,25 +21,32 @@ public class AllTests {
 
 	@Test
 	public void testInitiliaze() {
-		Dataset data = null;
+		GraphLoader graph = null;
 		try {
-			data = new Dataset("traininGraph.txt");
+			graph = new GraphLoader("traininGraph.txt");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		HashMap<String, HashSet<String>> map = data.getMap();
+		EgoNetwork[] egos=graph.partition(0,1);
+		LocalNetwork demon=new LocalNetwork(egos);
 		LabelPropagation lp = new LabelPropagation();
-		assertEquals(lp.initiliaze(map), true);
-		for (Node n : lp.getCommunityList())
-			assertEquals(n.getRealId(), n.getCommunityId());
+		lp.initiliaze(demon.getLocalNetwork());
+		lp.proceedLP();
+		ArrayList<HashSet<String>> kominiteler=lp.constructCommunities();
+		for (Iterator<HashSet<String>> iterator = kominiteler.iterator(); iterator.hasNext();) {
+			HashSet<String> hashSet = (HashSet<String>) iterator.next();
+			System.out.println(hashSet);
+		}
+		
+		
 	}
 
 	@Test
 	public void testGetCommunityId() {
-		Dataset data = null;
+		GraphLoader data = null;
 		try {
-			data = new Dataset("traininGraph.txt");
+			data = new GraphLoader("traininGraph.txt");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,9 +62,11 @@ public class AllTests {
 		assertEquals(lp.getCommunityId("11"), lp.getCommunityId("12"));
 		assertEquals(lp.getCommunityId("3"), lp.getCommunityId("2"));
 		assertEquals(lp.getCommunityId("8"), lp.getCommunityId("7"));
-		Collections.sort(lp.getCommunityList());
-		for(Node v:lp.getCommunityList()){
-			System.out.println(v);
+		//Collections.sort(lp.getCommunityList());
+		ArrayList<HashSet<String>> kominiteler=lp.constructCommunities();
+		for (Iterator<HashSet<String>> iterator = kominiteler.iterator(); iterator.hasNext();) {
+			HashSet<String> hashSet = (HashSet<String>) iterator.next();
+		//	System.out.println(hashSet);
 		}
 	}
 
