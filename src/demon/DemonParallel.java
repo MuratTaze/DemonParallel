@@ -8,24 +8,27 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import labelPropagation.EgoNetwork;
 import labelPropagation.GraphLoader;
 import labelPropagation.LabelPropagation;
 import labelPropagation.LocalNetwork;
 
 import org.pcj.PCJ;
+import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
 public class DemonParallel extends Storage implements StartPoint {
-	CopyOnWriteArrayList<HashSet<String>> globalCommunities = null;
-
+	private CopyOnWriteArrayList<HashSet<String>> globalCommunities = null;
+	@Shared
+	private EgoNetwork[] localGraph;
 	@Override
 	public void main() throws IOException {
 		GraphLoader graph = null;
 		graph = new GraphLoader("traininGraph.txt");
-
-		LocalNetwork localNetwork = new LocalNetwork(graph.partition(
-				PCJ.myId(), PCJ.threadCount()));
+		localGraph=graph.partition(
+				PCJ.myId(), PCJ.threadCount());
+		LocalNetwork localNetwork = new LocalNetwork(localGraph);
 		for (Entry<String, HashSet<String>> entry : localNetwork
 				.getLocalNetwork().entrySet()) {
 			HashMap<String, HashSet<String>> e = egoMinusEgo(entry.getKey(),
@@ -35,19 +38,19 @@ public class DemonParallel extends Storage implements StartPoint {
 			lp.proceedLP();
 			ArrayList<HashSet<String>> localCommunities = lp
 					.constructCommunities();
-			for (Iterator<HashSet<String>> iterator = localCommunities
-					.iterator(); iterator.hasNext();) {
-				HashSet<String> localCommunity = (HashSet<String>) iterator
-						.next();
+			for (Iterator<HashSet<String>> iterator = localCommunities.iterator(); iterator
+					.hasNext();) {
+				HashSet<String> localCommunity = (HashSet<String>) iterator.next();
 				localCommunity.add(entry.getKey());
-				merge(localCommunity, 0.30);
+				merge( localCommunity,0.30);
 			}
-
+			
 		}
-		System.out.println(globalCommunities);
+System.out.println(globalCommunities);
 	}
 
-	private void merge(HashSet<String> localCommunity, double percantage) {
+	private void merge(
+		HashSet<String> localCommunity, double percantage) {
 		if (globalCommunities == null) {
 			globalCommunities = new CopyOnWriteArrayList<HashSet<String>>();
 			globalCommunities.add(localCommunity);
@@ -62,10 +65,9 @@ public class DemonParallel extends Storage implements StartPoint {
 					temp.addAll(localCommunity);// join them
 					return;
 				} else {
-
+					
 				}
-			}
-			globalCommunities.add(localCommunity);// as a seperate
+			}globalCommunities.add(localCommunity);// as a seperate
 			// community
 		}
 	}
