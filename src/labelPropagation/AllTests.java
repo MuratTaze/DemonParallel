@@ -1,9 +1,6 @@
 package labelPropagation;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,72 +9,48 @@ import org.junit.Test;
 
 public class AllTests {
 
-	
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testInitiliaze() {
 
-	@Test
-	public void testFindMostCommonlyUsedId() {
-		fail("Not yet implemented");
+	GraphLoader graph = null;
+	try {
+	    graph = new GraphLoader("traininGraph.txt");
+	} catch (IOException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
 	}
+	Network[] egos = graph.partition(0, 1);
+	LabelPropagation lp = new LabelPropagation(constructHashMap(egos), 100);
+	lp.proceedLP();
+	System.out.println("Label Propagation = " + lp.constructCommunities());
+    }
 
-	@Test
-	public void testInitiliaze() {
-		GraphLoader graph = null;
-		try {
-			graph = new GraphLoader("traininGraph.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public HashMap<String, HashSet<String>> constructHashMap(Network[] egos) {
+	HashMap<String, HashSet<String>> result = new HashMap<String, HashSet<String>>();
+	for (int i = 0; i < egos.length; i++) {
+	    if (egos[i] != null) {
+		for (int j = 0; j < egos[i].getGraph().size(); j++) {
+
+		    result.put(((NeighborList) (egos[i].getGraph().get(j)))
+			    .getHeadVertex().getValue().toString(),
+			    vertexToString(((NeighborList) (egos[i].getGraph()
+			            .get(j))).getListOfNeighbors()));
 		}
-		EgoNetwork[] egos=graph.partition(0,1);
-		LocalNetwork demon=new LocalNetwork(egos);
-		LabelPropagation lp = new LabelPropagation();
-		lp.initiliaze(demon.getLocalNetwork());
-		lp.proceedLP();
-		ArrayList<HashSet<String>> kominiteler=lp.constructCommunities();
-		for (Iterator<HashSet<String>> iterator = kominiteler.iterator(); iterator.hasNext();) {
-			HashSet<String> hashSet = (HashSet<String>) iterator.next();
-			System.out.println(hashSet);
-		}
-		
-		
+	    }
+
 	}
+	return result;
+    }
 
-	@Test
-	public void testGetCommunityId() {
-		GraphLoader data = null;
-		try {
-			data = new GraphLoader("traininGraph.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		HashMap<String, HashSet<String>> map = data.getMap();
-		LabelPropagation lp = new LabelPropagation();
-		lp.initiliaze(map);
-		/*initially each node itself is a community*/
-		assertEquals(lp.getCommunityId("11"), "11");
-
-		/* after communities are constructed */
-		lp.proceedLP();
-		assertEquals(lp.getCommunityId("11"), lp.getCommunityId("12"));
-		assertEquals(lp.getCommunityId("3"), lp.getCommunityId("2"));
-		assertEquals(lp.getCommunityId("8"), lp.getCommunityId("7"));
-		//Collections.sort(lp.getCommunityList());
-		ArrayList<HashSet<String>> kominiteler=lp.constructCommunities();
-		for (Iterator<HashSet<String>> iterator = kominiteler.iterator(); iterator.hasNext();) {
-			HashSet<String> hashSet = (HashSet<String>) iterator.next();
-		//	System.out.println(hashSet);
-		}
+    @SuppressWarnings("rawtypes")
+    private HashSet<String> vertexToString(HashSet<Vertex> neighbors) {
+	HashSet<String> result = new HashSet<String>();
+	for (Iterator iterator = neighbors.iterator(); iterator.hasNext();) {
+	    Vertex v = (Vertex) iterator.next();
+	    result.add(v.getValue().toString());
 	}
-
-	@Test
-	public void testProceedLP() {
-		fail("Not yet implemented");
-	}
-
-	@Test
-	public void testIsTerminated() {
-		fail("Not yet implemented");
-	}
-
+	return result;
+    }
 }
