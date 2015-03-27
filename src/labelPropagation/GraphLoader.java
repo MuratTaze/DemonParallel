@@ -86,6 +86,6 @@ public class GraphLoader {
 
 	public int hash(int vertexId, int capacity) {
 
-		return (vertexId & 0x7fffffff) % capacity;
+		return new Integer(vertexId).hashCode() % capacity;
 	}
 }
