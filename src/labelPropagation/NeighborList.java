@@ -8,34 +8,34 @@ public class NeighborList<T> {
 
     @Override
     public String toString() {
-	return "NeighborList [headVertex=" + headVertex + ", listOfNeighbors="
-	        + listOfNeighbors + "]";
+        return "NeighborList [headVertex=" + headVertex + ", listOfNeighbors="
+                + listOfNeighbors + "]";
     }
 
     public Vertex<T> getHeadVertex() {
-	return headVertex;
+        return headVertex;
     }
 
     public void setHeadVertex(Vertex<T> headVertex) {
-	this.headVertex = headVertex;
+        this.headVertex = headVertex;
     }
 
     public HashSet<Vertex<T>> getListOfNeighbors() {
-	return listOfNeighbors;
+        return listOfNeighbors;
     }
 
     public void setListOfNeighbors(HashSet<Vertex<T>> listOfNeighbors) {
-	this.listOfNeighbors = listOfNeighbors;
+        this.listOfNeighbors = listOfNeighbors;
     }
 
     public NeighborList(Vertex<T> headVertex, HashSet<Vertex<T>> listOfNeighbors) {
-	super();
-	this.headVertex = headVertex;
-	this.listOfNeighbors = listOfNeighbors;
+        super();
+        this.headVertex = headVertex;
+        this.listOfNeighbors = listOfNeighbors;
     }
 
     public NeighborList() {
-	super();
-	// TODO Auto-generated constructor stub
+        super();
+        // TODO Auto-generated constructor stub
     }
 }

@@ -1,28 +1,31 @@
 package labelPropagation;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Network<T> {
-    /*here we use array list of neighbor list due to the collision which may occur during hashing.*/
-    private ArrayList<NeighborList<T>> graph;
+
+    private HashMap<Vertex<T>, NeighborList<T>> graph;
 
     public Network() {
-	super();
-	// TODO Auto-generated constructor stub
-	graph = new ArrayList<NeighborList<T>>();
+        super();
     }
 
-    public ArrayList<NeighborList<T>> getGraph() {
-	return graph;
+    public Network(HashMap<Vertex<T>, NeighborList<T>> network) {
+        super();
+        this.graph = network;
     }
 
-    public void setGraph(ArrayList<NeighborList<T>> subGraph) {
-	this.graph = subGraph;
+    public HashMap<Vertex<T>, NeighborList<T>> getGraph() {
+        return graph;
     }
 
-    
+    public void setGraph(HashMap<Vertex<T>, NeighborList<T>> network) {
+        this.graph = network;
+    }
+
     @Override
     public String toString() {
-	return "EgoNetwork [subGraph=" + graph + "]";
+        return "Network [network=" + graph + "]";
     }
+
 }
