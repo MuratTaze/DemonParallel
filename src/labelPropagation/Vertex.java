@@ -14,7 +14,7 @@ public class Vertex<T> {
     }
 
     public T getValue() {
-	return value;
+        return value;
     }
 
     public void setValue(T value) {
