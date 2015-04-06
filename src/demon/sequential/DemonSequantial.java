@@ -1,4 +1,4 @@
-package demon;
+package demon.sequential;
 
 import java.io.IOException;
 import labelPropagation.GraphLoader;

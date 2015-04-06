@@ -1,8 +1,13 @@
 package labelPropagation;
 
-public class Vertex<T> {
+import java.io.Serializable;
+
+public class Vertex<T> implements Serializable{
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private T value;
-    private T label;
 
     public Vertex() {
         super();
@@ -17,7 +22,7 @@ public class Vertex<T> {
     public Vertex(T value, T label) {
         super();
         this.value = value;
-        this.label = label;
+        
     }
 
     @Override
@@ -25,9 +30,7 @@ public class Vertex<T> {
         return this.value.equals(((Vertex<?>) obj).value);
     }
 
-    public T getLabel() {
-        return label;
-    }
+  
 
     public T getValue() {
         return value;
@@ -38,17 +41,14 @@ public class Vertex<T> {
         return value.hashCode();
     }
 
-    public void setLabel(T label) {
-        this.label = label;
-    }
-
+  
     public void setValue(T value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return "Vertex [value=" + value + ", label=" + label + "]";
+        return "Vertex [value=" + value +  "]";
     }
 
 }

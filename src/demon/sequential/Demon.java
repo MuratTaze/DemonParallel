@@ -1,11 +1,17 @@
-package demon;
+package demon.sequential;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
+
+import org.pcj.PCJ;
+
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
+import labelPropagation.GraphLoader;
 import labelPropagation.LabelPropagation;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
@@ -82,9 +88,38 @@ public class Demon<T> {
                                 network.getGraph().get(neighbor), neighborList));
             } else {
                 // remote access required. it will soon be implemented.
+                /*
+                 * hangi makinaya düştüğünü bul hangi indexte olduğunu bul o
+                 * makinadan arraylisti getir sonra o arraylistte aradığımız
+                 * elemanı bul
+                 */
+                NeighborList<T> nl = getRemoteNeighbors(neighbor);
+               result.put(neighbor, intersection(neighbor, nl, neighborList));
+
             }
         }
         return new Network<T>(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    private NeighborList<T> getRemoteNeighbors(Vertex<T> neighbor) {
+
+        int numberOfThreads = PCJ.threadCount();
+        int size = GraphLoader.numberOfElements;
+        int arraySize = (size / numberOfThreads) + 1;
+        int hashCode = neighbor.hashCode() % (size + 1);
+        int thread = hashCode / arraySize;
+
+        ArrayList<NeighborList<T>> entry = (ArrayList<NeighborList<T>>) (PCJ
+                .get(thread, "array", neighbor.hashCode() % arraySize));
+        for (Iterator<NeighborList<T>> iterator = entry.iterator(); iterator
+                .hasNext();) {
+            NeighborList<T> neighborList = (NeighborList<T>) iterator.next();
+            if (neighborList.getHeadVertex().equals(neighbor)) {
+                return neighborList;
+            }
+        }
+        return null;
     }
 
     /* returns intersection of two sets as new set */
@@ -107,7 +142,6 @@ public class Demon<T> {
              * label propagation on it
              */
             Network<T> eMeN = egoMinusEgo(entry.getKey(), graph);
-
             LabelPropagation<T> lp = new LabelPropagation<T>();
             lp.initiliaze(eMeN.getGraph());
             lp.proceedLP();
@@ -121,6 +155,7 @@ public class Demon<T> {
 
                 localCommunity.getMembers().add(entry.getKey().getValue());
                 merge(localCommunity, mergeFactor);
+
             }
 
         }

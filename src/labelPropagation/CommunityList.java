@@ -12,18 +12,18 @@ public class CommunityList<T> {
         communities = new CopyOnWriteArrayList<Community<T>>();
     }
 
-    public void addMember(Vertex<T> member) {
+    public void addMember(Vertex<T> member,T label) {
         for (Community<T> community : communities) {
-            if (member.getLabel().equals(community.getCommunityId()))
+            if (label.equals(community.getCommunityId()))
                 community.getMembers().add(member.getValue());
         }
     }
 
-    public void createCommunity(Vertex<T> member) {
+    public void createCommunity(T realId,T communityId) {
         Community<T> community = new Community<T>();
-        community.setCommunityId(member.getLabel());
+        community.setCommunityId(communityId);
         community.setMembers(new HashSet<T>());
-        community.getMembers().add(member.getValue());
+        community.getMembers().add(realId);
         communities.add(community);
     }
 
@@ -31,10 +31,9 @@ public class CommunityList<T> {
         return communities;
     }
 
-    public boolean hasCommunity(Vertex<T> vertex) {
-
+    public boolean hasCommunity(T label) {
         for (Community<T> community : communities) {
-            if (vertex.getLabel().equals(community.getCommunityId()))
+            if (label.equals(community.getCommunityId()))
                 return true;
         }
 
@@ -47,7 +46,7 @@ public class CommunityList<T> {
 
     @Override
     public String toString() {
-        return "CommunityList [communities=" + communities + "]";
+        return "CommunityList ..\n" + communities+"\n" ;
     }
 
 }

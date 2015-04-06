@@ -11,6 +11,7 @@ public class GraphLoader {
     /* vertices and neighbor lists */
     private HashMap<Vertex<Integer>, NeighborList<Integer>> map;
     private ArrayList<Vertex<Integer>> vertices;/* stores created vertices */
+    public static int numberOfElements;
 
     /* loads data to a hash map */
     public GraphLoader(String filename) throws IOException {
@@ -78,7 +79,7 @@ public class GraphLoader {
         }
         // Close the buffer reader
         bufferReader.close();
-
+        numberOfElements = map.size();
     }
 
     public HashMap<Vertex<Integer>, NeighborList<Integer>> getMap() {

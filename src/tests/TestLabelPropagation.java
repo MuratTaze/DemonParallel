@@ -1,6 +1,10 @@
-package labelPropagation;
+package tests;
 
 import java.io.IOException;
+
+import labelPropagation.GraphLoader;
+import labelPropagation.LabelPropagation;
+
 import org.junit.Test;
 
 public class TestLabelPropagation {

@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 public class LabelPropagation<T> {
-
+    private HashMap<T, T> communites = new HashMap<T, T>();
     private HashMap<Vertex<T>, NeighborList<T>> network;/*
                                                          * due to speed issues
                                                          */
@@ -26,10 +26,13 @@ public class LabelPropagation<T> {
     public CommunityList<T> extractCommunities() {
         CommunityList<T> communities = new CommunityList<T>();
         for (Vertex<T> vertex : this.network.keySet()) {
-            if (communities.hasCommunity(vertex)) {
-                communities.addMember(vertex);
+            if (communities
+                    .hasCommunity(this.communites.get(vertex.getValue()))) {
+                communities.addMember(vertex,
+                        this.communites.get(vertex.getValue()));
             } else {
-                communities.createCommunity(vertex);
+                communities.createCommunity(vertex.getValue(),
+                        this.communites.get(vertex.getValue()));
             }
         }
 
@@ -39,19 +42,20 @@ public class LabelPropagation<T> {
 
     public T findMostCommonlyUsedId(Vertex<T> randomVertex,
             NeighborList<T> neighborList) {
+
         if (neighborList.getListOfNeighbors().size() != 0) {
             /* iterate over ego network and count community id's. */
             HashMap<T, Integer> countList = new HashMap<T, Integer>(
                     neighborList.getListOfNeighbors().size());
             for (Vertex<T> node : neighborList.getListOfNeighbors()) {
 
-                if (countList.get(node.getLabel()) == null) {
-                    countList.put(node.getLabel(), 1);
+                if (countList.get(communites.get(node.getValue())) == null) {
+                    countList.put(communites.get(node.getValue()), 1);
                 } else {/*
                          * increment that label 's occurrences .
                          */
-                    countList.put(node.getLabel(),
-                            countList.get(node.getLabel()) + 1);
+                    countList.put(communites.get(node.getValue()),
+                            countList.get(communites.get(node.getValue())) + 1);
                 }
             }
             /* ties are broken randomly */
@@ -70,7 +74,7 @@ public class LabelPropagation<T> {
                 }
             }
         }
-        return randomVertex.getLabel();
+        return communites.get(randomVertex.getValue());
     }
 
     public HashMap<Vertex<T>, NeighborList<T>> getNetwork() {
@@ -87,8 +91,8 @@ public class LabelPropagation<T> {
          */
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
-            Vertex<T> key = entry.getKey();
-            key.setLabel(key.getValue());
+            communites
+                    .put(entry.getKey().getValue(), entry.getKey().getValue());
         }
 
         return true;
@@ -98,9 +102,9 @@ public class LabelPropagation<T> {
     public boolean isTerminated() {
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
-            Vertex<T> key = entry.getKey();
 
-            if (findMostCommonlyUsedId(key, entry.getValue()) == key.getLabel()) {
+            if (findMostCommonlyUsedId(entry.getKey(), entry.getValue()) == communites
+                    .get(entry.getKey().getValue())) {
                 continue;/* do nothing */
             } else {
                 return false;
@@ -119,8 +123,10 @@ public class LabelPropagation<T> {
         do {
             Vertex<T> randomVertex = keysAsArray.get(r.nextInt(keysAsArray
                     .size()));
-            randomVertex.setLabel(findMostCommonlyUsedId(randomVertex,
-                    this.network.get(randomVertex)));
+            communites.put(
+                    randomVertex.getValue(),
+                    findMostCommonlyUsedId(randomVertex,
+                            this.network.get(randomVertex)));
 
         } while ((!isTerminated()));/*
                                      * i cut this code && (numberOfIterations !=

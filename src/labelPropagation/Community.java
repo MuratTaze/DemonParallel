@@ -28,8 +28,8 @@ public class Community<T> {
 
     @Override
     public String toString() {
-        return "Community [communityId=" + communityId + ", members=" + members
-                + "]";
+        return "\n    Community [communityId=" + communityId + ", members=" + members
+                + "]\n";
     }
 
 }
