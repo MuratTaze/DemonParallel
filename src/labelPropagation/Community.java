@@ -1,8 +1,13 @@
 package labelPropagation;
 
+import java.io.Serializable;
 import java.util.HashSet;
 
-public class Community<T> {
+public class Community<T> implements Serializable{
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private T communityId;
     private HashSet<T> members;
 

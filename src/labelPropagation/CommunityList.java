@@ -1,10 +1,15 @@
 package labelPropagation;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class CommunityList<T> {
+public class CommunityList<T> implements Serializable {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private CopyOnWriteArrayList<Community<T>> communities;
 
     public CommunityList() {

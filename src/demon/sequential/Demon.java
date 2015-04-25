@@ -67,7 +67,7 @@ public class Demon<T> {
      * for a given vertex and a network this method constructs its ego minus ego
      * network.
      */
-    private Network<T> egoMinusEgo(Vertex<T> key, Network<T> network) {
+    public Network<T> egoMinusEgo(Vertex<T> key, Network<T> network) {
         HashMap<Vertex<T>, NeighborList<T>> result = new HashMap<Vertex<T>, NeighborList<T>>();
 
         NeighborList<T> neighborList = network.getGraph().get(key);
