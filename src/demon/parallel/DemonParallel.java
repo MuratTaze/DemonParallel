@@ -2,7 +2,6 @@ package demon.parallel;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
@@ -35,7 +34,7 @@ public class DemonParallel extends Storage implements StartPoint {
          * bigger community fully contains smaller community
          */
         PCJ.barrier();
-        demon.execute(indexer.getLocalNetwork(), 0.6);
+        demon.execute(indexer.getLocalNetwork(), 0.5);
         globalCommunities = demon.getGlobalCommunities();
         int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math
                 .log10(2));
@@ -45,44 +44,67 @@ public class DemonParallel extends Storage implements StartPoint {
 
             /* determine who will merge with whom at this step */
             if (myTurn(i)) {
+                System.out.println("merge!!!!!!!!!!!!!!!!!!!");
                 int target = PCJ.myId() + (int) Math.pow(2, i);
+                if (target >= PCJ.threadCount())
+                    continue;
                 CommunityList<Integer> targetCommunities = PCJ.get(target,
                         "globalCommunities");
-                for (Community<Integer> community : targetCommunities
-                        .getCommunities()) {
-                    merge(community, 0.6);
-                }
-
+                globalCommunities.getCommunities().addAll(
+                        targetCommunities.getCommunities());
+                merge(0.6);
             }
         }
         System.out
                 .println("Found by " + PCJ.myId() + " \n" + globalCommunities);
     }
 
-    private void merge(Community<Integer> toBeMerged, double mergeFactor) {
-        if (globalCommunities == null) {
-            globalCommunities = new CommunityList<Integer>();
-            globalCommunities.getCommunities().add(toBeMerged);
-        } else {
-            /* we check for each global community */
-            for (Community<Integer> temp : globalCommunities.getCommunities()) {
-
-                HashSet<Integer> temp2 = new HashSet<Integer>(temp.getMembers());
-                double size1 = temp2.size();
-                double size2 = toBeMerged.getMembers().size();
-                double min = size1 < size2 ? size1 : size2;
-                temp2.retainAll(toBeMerged.getMembers());
-                if (temp2.size() / min >= mergeFactor) {
-                    temp.getMembers().addAll(toBeMerged.getMembers());// join
-                                                                      // them
-                    return;
-                }
+    private void merge(double mergeFactor) {
+        /* merge part - pooling approach */
+        for (int i = 0; i < globalCommunities.getCommunities().size() - 1; i++) {
+            for (int j = i + 1; j < globalCommunities.getCommunities().size();) {
+                if (isMergible(globalCommunities.getCommunities().get(i),
+                        globalCommunities.getCommunities().get(j), mergeFactor)) {
+                    globalCommunities
+                            .getCommunities()
+                            .get(i)
+                            .getMembers()
+                            .addAll(globalCommunities.getCommunities().get(j)
+                                    .getMembers());
+                    globalCommunities.getCommunities().remove(j);
+                    j = i + 1;
+                } else
+                    j++;
             }
-            globalCommunities.getCommunities().add(toBeMerged);// as a
-                                                               // seperate
-            // community
-
         }
+    }
+
+    private boolean isMergible(Community<Integer> community1,
+            Community<Integer> community2, double mergeFactor) {
+        if (community1 == null || community2 == null)
+            return false;
+        double intersection = 0;
+        double size1 = community1.getMembers().size();
+        double size2 = community2.getMembers().size();
+        double min = size2;
+        if (size1 < size2) {
+            min = size1;
+        }
+        if (min == size2) {
+            for (Integer value : community2.getMembers()) {
+                if (community1.getMembers().contains(value))
+                    intersection++;
+            }
+        } else {
+            for (Integer value : community1.getMembers()) {
+                if (community2.getMembers().contains(value))
+                    intersection++;
+            }
+        }
+        if (intersection / min >= mergeFactor) {
+            return true;
+        }
+        return false;
     }
 
     private boolean myTurn(int iteration) {
@@ -93,8 +115,7 @@ public class DemonParallel extends Storage implements StartPoint {
     }
 
     public static void main(String[] args) {
-        String[] nodes = new String[] { "localhost", "localhost", "localhost",
-                "localhost" };
+        String[] nodes = new String[] { "localhost", "localhost" };
         PCJ.deploy(DemonParallel.class, DemonParallel.class, nodes);
     }
 }

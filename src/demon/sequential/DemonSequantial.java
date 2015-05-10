@@ -13,7 +13,7 @@ public class DemonSequantial {
          * change merge factor to see its effect. 1 means merge communities if
          * bigger community fully contains smaller community
          */
-        demon.execute(graphLoader.getNetwork(), 1);
+        demon.execute(graphLoader.getNetwork(), 0.5);
         System.out.println("Overlapping Communities = "
                 + demon.getGlobalCommunities());
     }

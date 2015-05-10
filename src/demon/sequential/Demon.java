@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map.Entry;
-
-import org.pcj.PCJ;
 
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
@@ -17,15 +14,14 @@ import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
 
+import org.pcj.PCJ;
+
 public class Demon<T> {
-    private CommunityList<T> globalCommunities = null;
+
+    private CommunityList<T> pool = null;
 
     public CommunityList<T> getGlobalCommunities() {
-        return globalCommunities;
-    }
-
-    public void setGlobalCommunities(CommunityList<T> globalCommunities) {
-        this.globalCommunities = globalCommunities;
+        return pool;
     }
 
     public Demon() {
@@ -37,30 +33,35 @@ public class Demon<T> {
      * two communities are merged if at least β fraction of the smaller
      * community resides in their intersection.
      */
-    private void merge(Community<T> localCommunity, double mergeFactor) {
-        if (globalCommunities == null) {
-            globalCommunities = new CommunityList<T>();
-            globalCommunities.getCommunities().add(localCommunity);
-        } else {
-            /* we check for each global community */
-            for (Community<T> temp : globalCommunities.getCommunities()) {
-
-                HashSet<T> temp2 = new HashSet<T>(temp.getMembers());
-                double size1 = temp2.size();
-                double size2 = localCommunity.getMembers().size();
-                double min = size1 < size2 ? size1 : size2;
-                temp2.retainAll(localCommunity.getMembers());
-                if (temp2.size() / min >= mergeFactor) {
-                    temp.getMembers().addAll(localCommunity.getMembers());// join
-                                                                          // them
-                    return;
-                }
-            }
-            globalCommunities.getCommunities().add(localCommunity);// as a
-                                                                   // seperate
-            // community
-
+    private boolean isMergible(Community<T> community1, Community<T> community2,
+            double mergeFactor) {
+        if(community1==null||community2==null)
+            return false;
+        
+        double intersection = 0;
+        double size1 = community1.getMembers().size();
+        double size2 = community2.getMembers().size();
+        double min = size2;
+        if (size1 < size2) {
+            min = size1;
         }
+        if (min == size2) {
+            for (T value : community2.getMembers()) {
+                if (community1.getMembers().contains(value))
+                    intersection++;
+            }
+        } else {
+            for (T value : community1.getMembers()) {
+                if (community2.getMembers().contains(value))
+                    intersection++;
+            }
+        }
+        if (intersection / min >= mergeFactor) {
+
+            // them
+            return true;
+        }
+        return false;
     }
 
     /*
@@ -89,12 +90,13 @@ public class Demon<T> {
             } else {
                 // remote access required. it will soon be implemented.
                 /*
-                 * hangi makinaya düştüğünü bul hangi indexte olduğunu bul o
-                 * makinadan arraylisti getir sonra o arraylistte aradığımız
-                 * elemanı bul
+                 * hangi makinaya düştüğünü bul hangi indexte olduğunu
+                 * bul o makinadan arraylisti getir sonra o arraylistte
+                 * aradığımız elemanı bul
                  */
                 NeighborList<T> nl = getRemoteNeighbors(neighbor);
-               result.put(neighbor, intersection(neighbor, nl, neighborList));
+                network.getGraph().put(nl.getHeadVertex(), nl);
+                result.put(neighbor, intersection(neighbor, nl, neighborList));
 
             }
         }
@@ -134,18 +136,16 @@ public class Demon<T> {
     /* demon algorithm. */
     public void execute(Network<T> graph, double mergeFactor)
             throws IOException {
+        pool = new CommunityList<T>();
+        @SuppressWarnings("unchecked")
+        Vertex<T>[] vertices = new Vertex[graph.getGraph().size()];
+        graph.getGraph().keySet().toArray(vertices);
+        for (Vertex<T> vertex : vertices) {
 
-        for (Entry<Vertex<T>, NeighborList<T>> entry : graph.getGraph()
-                .entrySet()) {
-            /*
-             * for each vertex we get its ego minus ego network and perform
-             * label propagation on it
-             */
-            Network<T> eMeN = egoMinusEgo(entry.getKey(), graph);
+            Network<T> eMeN = egoMinusEgo(vertex, graph);
             LabelPropagation<T> lp = new LabelPropagation<T>();
             lp.initiliaze(eMeN.getGraph());
             lp.proceedLP();
-
             /* get local communities found by label propagation */
             CommunityList<T> localCommunities = lp.extractCommunities();
 
@@ -153,11 +153,26 @@ public class Demon<T> {
             for (Community<T> localCommunity : localCommunities
                     .getCommunities()) {
 
-                localCommunity.getMembers().add(entry.getKey().getValue());
-                merge(localCommunity, mergeFactor);
+                localCommunity.getMembers().add(vertex.getValue());
+                pool.getCommunities().add(localCommunity);/*
+                                                           * add all communities
+                                                           * to community pool
+                                                           */
 
             }
-
+        }
+        /* merge part - pooling approach */
+        for (int i = 0; i < pool.getCommunities().size() - 1; i++) {
+            for (int j = i+1; j < pool.getCommunities().size();) {
+                if (isMergible(pool.getCommunities().get(i), pool.getCommunities()
+                        .get(j), mergeFactor)) {
+                    pool.getCommunities().get(i).getMembers()
+                            .addAll(pool.getCommunities().get(j).getMembers());
+                    pool.getCommunities().remove(j);
+                    j = i+1;
+                } else
+                    j++;
+            }
         }
 
     }
