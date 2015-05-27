@@ -1,18 +1,30 @@
 package labelPropagation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Community<T> implements Serializable{
+public class Community<T> implements Serializable {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
     private T communityId;
     private HashSet<T> members;
+    private HashSet<Community<T>> dependencyList;
+
+    public HashSet<Community<T>> getDependencyList() {
+        return dependencyList;
+    }
+
+    public void setDependencyList(HashSet<Community<T>> dependencyList) {
+        this.dependencyList = dependencyList;
+    }
 
     public Community() {
         super();
+        dependencyList = new HashSet<Community<T>>();
     }
 
     public T getCommunityId() {
@@ -33,8 +45,8 @@ public class Community<T> implements Serializable{
 
     @Override
     public String toString() {
-        return "\n    Community [communityId=" + communityId + ", members=" + members
-                + "]\n";
+        return "\n    Community [communityId=" + communityId + ", members="
+                + members + "]\n";
     }
 
 }
