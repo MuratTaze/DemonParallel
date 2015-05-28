@@ -116,7 +116,7 @@ public class LabelPropagation<T> {
 
     /* the label propagation algorithm. */
     public void proceedLP() {
-        int t = 10;/* number of iterations */
+        int t = 1000;/* number of iterations */
         int i = 0;
         List<Vertex<T>> keysAsArray = new ArrayList<Vertex<T>>(
                 this.network.keySet());
@@ -131,7 +131,7 @@ public class LabelPropagation<T> {
                             this.network.get(randomVertex)));
 
             i++;
-        } while (!isTerminated());/*i < t
+        } while (i < t);/*
                          * i cut this code && (numberOfIterations != t)
                          */
 
