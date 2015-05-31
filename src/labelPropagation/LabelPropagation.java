@@ -116,8 +116,6 @@ public class LabelPropagation<T> {
 
     /* the label propagation algorithm. */
     public void proceedLP() {
-        int t = 1000;/* number of iterations */
-        int i = 0;
         List<Vertex<T>> keysAsArray = new ArrayList<Vertex<T>>(
                 this.network.keySet());
         Random r = new Random();
@@ -130,11 +128,7 @@ public class LabelPropagation<T> {
                     findMostCommonlyUsedId(randomVertex,
                             this.network.get(randomVertex)));
 
-            i++;
-        } while (i < t);/*
-                         * i cut this code && (numberOfIterations != t)
-                         */
-
+        } while (!isTerminated());
     }
 
     public void setNetwork(HashMap<Vertex<T>, NeighborList<T>> network) {

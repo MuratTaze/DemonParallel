@@ -2,8 +2,6 @@ package labelPropagation;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class Community<T> implements Serializable {
     /**
@@ -12,19 +10,20 @@ public class Community<T> implements Serializable {
     private static final long serialVersionUID = 1L;
     private T communityId;
     private HashSet<T> members;
-    private Queue<Community<T>> dependencyList;
-        public Queue<Community<T>> getDependencyList() {
+    private HashSet<Community<T>> dependencyList;
+
+    public HashSet<Community<T>> getDependencyList() {
         return dependencyList;
     }
 
-    public void setDependencyList(Queue<Community<T>> dependencyList) {
+    public void setDependencyList(HashSet<Community<T>> dependencyList) {
         this.dependencyList = dependencyList;
     }
 
     public Community() {
         super();
-        dependencyList = new LinkedList<Community<T>>();
-       
+        dependencyList = new HashSet<Community<T>>();
+
     }
 
     public T getCommunityId() {
