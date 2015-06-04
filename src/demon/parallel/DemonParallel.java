@@ -13,6 +13,7 @@ import labelPropagation.GraphLoader;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
+import net.ontopia.utils.CompactHashSet;
 
 import org.pcj.PCJ;
 import org.pcj.Shared;
@@ -39,7 +40,7 @@ public class DemonParallel extends Storage implements StartPoint {
 		 * bigger community fully contains smaller community
 		 */
 		PCJ.barrier(); 
-		demon.execute(indexer.getLocalNetwork(), 0.5);
+		demon.execute(indexer.getLocalNetwork(), 0.5,1);
 		globalCommunities = demon.getGlobalCommunities();
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math
 				.log10(2));
@@ -101,12 +102,12 @@ public class DemonParallel extends Storage implements StartPoint {
 
 	}
 
-	private double degree(HashSet<Vertex<Integer>> all_neigbors,
-			HashSet<Integer> community_neigbors) {
+	private double degree(CompactHashSet<Vertex<Integer>> compactHashSet,
+			CompactHashSet<Integer> compactHashSet2) {
 		double degree = 0;
-		Iterator<Integer> iter = community_neigbors.iterator();
+		Iterator<Integer> iter = compactHashSet2.iterator();
 		while (iter.hasNext()) {
-			if (all_neigbors.contains(new Vertex<Integer>(iter.next()))) {
+			if (compactHashSet.contains(new Vertex<Integer>(iter.next()))) {
 				degree++;
 			}
 		}

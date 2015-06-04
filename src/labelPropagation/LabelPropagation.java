@@ -62,7 +62,7 @@ public class LabelPropagation<T> {
             int max = Collections.max(countList.values());
             if (max == 1) {
                 List<T> valuesList = new ArrayList<T>(countList.keySet());
-                int randomIndex = new Random().nextInt(valuesList.size());
+                int randomIndex = new Random(2).nextInt(valuesList.size());
                 T randomValue = valuesList.get(randomIndex);
                 return randomValue;
             }
@@ -116,12 +116,12 @@ public class LabelPropagation<T> {
 
     /* the label propagation algorithm. */
     public void proceedLP() {
-        List<Vertex<T>> keysAsArray = new ArrayList<Vertex<T>>(
+        List<Vertex<T>> vertices = new ArrayList<Vertex<T>>(
                 this.network.keySet());
-        Random r = new Random();
+        Random r = new Random(1);
 
         do {
-            Vertex<T> randomVertex = keysAsArray.get(r.nextInt(keysAsArray
+            Vertex<T> randomVertex = vertices.get(r.nextInt(vertices
                     .size()));
             communites.put(
                     randomVertex.getValue(),

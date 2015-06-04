@@ -1,8 +1,11 @@
 package labelPropagation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import net.ontopia.utils.CompactHashSet;
 
 public class CommunityList<T> implements Serializable {
 
@@ -10,11 +13,11 @@ public class CommunityList<T> implements Serializable {
      * 
      */
     private static final long serialVersionUID = 1L;
-    private CopyOnWriteArrayList<Community<T>> communities;
+    private ArrayList<Community<T>> communities;
 
     public CommunityList() {
         super();
-        communities = new CopyOnWriteArrayList<Community<T>>();
+        communities = new ArrayList<Community<T>>();
     }
 
     public void addMember(Vertex<T> member,T label) {
@@ -27,12 +30,12 @@ public class CommunityList<T> implements Serializable {
     public void createCommunity(T realId,T communityId) {
         Community<T> community = new Community<T>();
         community.setCommunityId(communityId);
-        community.setMembers(new HashSet<T>());
+        community.setMembers(new CompactHashSet<T>());
         community.getMembers().add(realId);
         communities.add(community);
     }
 
-    public CopyOnWriteArrayList<Community<T>> getCommunities() {
+    public  ArrayList<Community<T>> getCommunities() {
         return communities;
     }
 
@@ -45,7 +48,7 @@ public class CommunityList<T> implements Serializable {
         return false;
     }
 
-    public void setCommunities(CopyOnWriteArrayList<Community<T>> communities) {
+    public void setCommunities(ArrayList<Community<T>> communities) {
         this.communities = communities;
     }
 
