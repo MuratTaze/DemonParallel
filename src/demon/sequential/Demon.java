@@ -163,7 +163,6 @@ public class Demon<T> {
                                                            * add all communities
                                                            * to community pool
                                                            */
-
             }
             count++;
         }
@@ -189,7 +188,6 @@ public class Demon<T> {
                     if (isMergible(community, c, mergeFactor)) {
                         cont = true;
                         community.getMembers().addAll(c.getMembers());
-
                         community.getDependencyList().addAll(
                                 c.getDependencyList());
                         community.getDependencyList().remove(community);
@@ -210,6 +208,7 @@ public class Demon<T> {
         }
     }
 
+    
     private void quadraticMerging(double mergeFactor) {
         System.out.println("Merging---> Started.");
         /* merging part pooling approach */
@@ -241,7 +240,43 @@ public class Demon<T> {
         cleanPool();
     }
 
+    private void improvedQuadraticMerging(double mergeFactor) {
+        System.out.println("Merging---> Started.");
+        /* merging part pooling approach */
+        int j;
+        int n = pool.getCommunities().size();
+        int i = n - 2;
+        while (i >= 0) {
+            if (pool.getCommunities().get(i) != null) {
+                j = i + 1;
+                boolean merged = false;
+                do {
+                    merged = false;
+                    while (j < n) {
+                        if (pool.getCommunities().get(j) != null) {
+                            if (!(isMergible(pool.getCommunities().get(i), pool
+                                    .getCommunities().get(j), mergeFactor))) {
+                            } else {
+                                merged = true;
+                                pool.getCommunities()
+                                        .get(i)
+                                        .getMembers()
+                                        .addAll(pool.getCommunities().get(j)
+                                                .getMembers());
+                                pool.getCommunities().set(j, null);
+                            }
+                        }
+                        j = j + 1;
+                    }
+                } while(merged);
+            }
+            i = i - 1;
+        }
+        cleanPool();
+    }
+    
     private void cleanPool() {
+        // TODO: improve this
         for (Community<T> community : pool.getCommunities()) {
             if (community == null)
                 pool.getCommunities().remove(community);
