@@ -23,6 +23,12 @@ public class LabelPropagation<T> {
         initiliaze(this.network);
     }
 
+    /**
+     * This method creates communities by using label information of each
+     * vertex.
+     * 
+     * @return CommunityList object which contains a set of communities
+     */
     public CommunityList<T> extractCommunities() {
         CommunityList<T> communities = new CommunityList<T>();
         for (Vertex<T> vertex : this.network.keySet()) {
@@ -40,6 +46,16 @@ public class LabelPropagation<T> {
 
     }
 
+    /**
+     * For a given vertex and its neighbors, this method finds label of the most
+     * frequent neighbor.
+     * 
+     * @param randomVertex
+     *            vertex chosen randomly from the network
+     * @param neighborList
+     *            neighbors of the vertex
+     * @return label of the most frequent neighbor
+     */
     public T findMostCommonlyUsedId(Vertex<T> randomVertex,
             NeighborList<T> neighborList) {
 
@@ -62,7 +78,7 @@ public class LabelPropagation<T> {
             int max = Collections.max(countList.values());
             if (max == 1) {
                 List<T> valuesList = new ArrayList<T>(countList.keySet());
-                int randomIndex = new Random(2).nextInt(valuesList.size());
+                int randomIndex = new Random().nextInt(valuesList.size());
                 T randomValue = valuesList.get(randomIndex);
                 return randomValue;
             }
@@ -81,6 +97,14 @@ public class LabelPropagation<T> {
         return network;
     }
 
+    /**
+     * This method initializes all vertices with a unique label(id of each
+     * vertex).
+     * 
+     * @param network
+     *            graph
+     * @return returns false if the network is null.
+     */
     public boolean initiliaze(HashMap<Vertex<T>, NeighborList<T>> network) {
         if (network == null)
             return false;
@@ -98,7 +122,13 @@ public class LabelPropagation<T> {
         return true;
     }
 
-    /* check whether all vertices have the most commonly id of its neighbors */
+    /**
+     * This methods checks whether all vertices have the most commonly id of its
+     * neighbors
+     * 
+     * @return returns true if all the vertices have label of its most frequent
+     *         neighbor.
+     */
     public boolean isTerminated() {
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
@@ -115,20 +145,46 @@ public class LabelPropagation<T> {
     }
 
     /* the label propagation algorithm. */
+    /**
+     * This method works as the following: -first shuffles vertices. -then it
+     * assigns label of corresponding the most frequent neighbor to label of
+     * each vertex. -after all vertices are processed it checks termination
+     * condition. If it satisfies then we are done otherwise we go back to
+     * shuffling step and do the same things.
+     */
     public void proceedLP() {
         List<Vertex<T>> vertices = new ArrayList<Vertex<T>>(
                 this.network.keySet());
-        Random r = new Random(1);
 
         do {
-            Vertex<T> randomVertex = vertices.get(r.nextInt(vertices
-                    .size()));
-            communites.put(
-                    randomVertex.getValue(),
-                    findMostCommonlyUsedId(randomVertex,
-                            this.network.get(randomVertex)));
-
+            shuffle(vertices);
+            for (Vertex<T> vertex : vertices) {
+                communites
+                        .put(vertex.getValue(),
+                                findMostCommonlyUsedId(vertex,
+                                        this.network.get(vertex)));
+            }
         } while (!isTerminated());
+    }
+
+    /**
+     * This method places each vertex to a random location in list. In-place
+     * shuffling.
+     * 
+     * @param vertices
+     *            list of vertices
+     */
+    private void shuffle(List<Vertex<T>> vertices) {
+        Random r = new Random();
+        int i = vertices.size() - 1;
+        while (i != 0) {
+            int j = r.nextInt(i);
+            Vertex<T> temp = vertices.get(j);
+            vertices.set(j, vertices.get(i));
+            vertices.set(i, temp);
+            i--;
+        }
+
     }
 
     public void setNetwork(HashMap<Vertex<T>, NeighborList<T>> network) {

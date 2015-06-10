@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
@@ -12,6 +14,7 @@ import labelPropagation.LabelPropagation;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
+import net.ontopia.utils.CompactHashMap;
 import net.ontopia.utils.CompactHashSet;
 
 import org.pcj.PCJ;
@@ -19,6 +22,7 @@ import org.pcj.PCJ;
 public class Demon<T> {
 
     private CommunityList<T> pool = null;
+    private CommunityList<T> cleanedPool = null;
     private LabelPropagation<T> lp;
 
     public CommunityList<T> getGlobalCommunities() {
@@ -31,9 +35,18 @@ public class Demon<T> {
         lp = new LabelPropagation<T>();
     }
 
-    /*
-     * two communities are merged if at least β fraction of the smaller
-     * community resides in their intersection.
+    /**
+     * This method checks whether two communities can be merged or not.
+     * 
+     * @param community1
+     *            first community
+     * @param community2
+     *            second community
+     * @param mergeFactor
+     *            β is the threshold. If it is 1 we merge iff fully containment
+     *            is achieved. If it is 0 two communities are merged anyway.
+     * @return returns true if at least β fraction of the smaller community
+     *         resides in their intersection.
      */
     private boolean isMergible(Community<T> community1,
             Community<T> community2, double mergeFactor) {
@@ -66,14 +79,18 @@ public class Demon<T> {
         return false;
     }
 
-    /*
-     * for a given vertex and a network this method constructs its ego minus ego
-     * network.
+    /**
+     * This method constructs ego minus ego network of a given vertex.
+     * 
+     * @param vertex
+     * @param network
+     * @return the network which is constructed without above vertex. It
+     *         includes edges between neighbors of the above vertex.
      */
-    public Network<T> egoMinusEgo(Vertex<T> key, Network<T> network) {
+    public Network<T> egoMinusEgo(Vertex<T> vertex, Network<T> network) {
         HashMap<Vertex<T>, NeighborList<T>> result = new HashMap<Vertex<T>, NeighborList<T>>();
 
-        NeighborList<T> neighborList = network.getGraph().get(key);
+        NeighborList<T> neighborList = network.getGraph().get(vertex);
         for (Vertex<T> neighbor : neighborList.getListOfNeighbors()) {
 
             /*
@@ -87,58 +104,94 @@ public class Demon<T> {
                  */
                 result.put(
                         neighbor,
-                        intersection(neighbor,
-                                network.getGraph().get(neighbor), neighborList));
+                        intersection(network.getGraph().get(neighbor),
+                                neighborList));
             } else {
-                // remote access required. it will soon be implemented.
-                /*
-                 * hangi makinaya düştüğünü bul hangi indexte olduğunu bul o
-                 * makinadan arraylisti getir sonra o arraylistte aradığımız
-                 * elemanı bul
-                 */
                 NeighborList<T> nl = getRemoteNeighbors(neighbor);
                 network.getGraph().put(nl.getHeadVertex(), nl);
-                result.put(neighbor, intersection(neighbor, nl, neighborList));
+                result.put(neighbor, intersection(nl, neighborList));
 
             }
         }
         return new Network<T>(result);
     }
 
+    /**
+     * This method gets the neighbor list of given vertex from the indexed
+     * processor.
+     * 
+     * @param vertex
+     * @return adjacency list of given vertex
+     */
     @SuppressWarnings("unchecked")
-    private NeighborList<T> getRemoteNeighbors(Vertex<T> neighbor) {
+    private NeighborList<T> getRemoteNeighbors(Vertex<T> vertex) {
 
         int numberOfThreads = PCJ.threadCount();
         int size = GraphLoader.numberOfElements;
         int arraySize = (size / numberOfThreads) + 1;
-        int hashCode = neighbor.hashCode() % (size + 1);
+        int hashCode = vertex.hashCode() % (size + 1);
         int thread = hashCode / arraySize;
 
         ArrayList<NeighborList<T>> entry = (ArrayList<NeighborList<T>>) (PCJ
-                .get(thread, "array", neighbor.hashCode() % arraySize));
+                .get(thread, "array", vertex.hashCode() % arraySize));
         for (Iterator<NeighborList<T>> iterator = entry.iterator(); iterator
                 .hasNext();) {
             NeighborList<T> neighborList = (NeighborList<T>) iterator.next();
-            if (neighborList.getHeadVertex().equals(neighbor)) {
+            if (neighborList.getHeadVertex().equals(vertex)) {
                 return neighborList;
             }
         }
         return null;
     }
 
-    /* returns intersection of two sets as new set */
-    private NeighborList<T> intersection(Vertex<T> headVertex,
-            NeighborList<T> neighborList, NeighborList<T> neighborList2) {
+    /**
+     * 
+     * This method computes intersection of given two sets.
+     * 
+     * @param neighborList
+     * @param neighborList2
+     * @return returns intersection of two sets as a new set
+     */
+    private NeighborList<T> intersection(NeighborList<T> neighborList,
+            NeighborList<T> neighborList2) {
         CompactHashSet<Vertex<T>> intersection = new CompactHashSet<Vertex<T>>(
                 neighborList.getListOfNeighbors());
         intersection.retainAll(neighborList2.getListOfNeighbors());
-        return new NeighborList<T>(headVertex, intersection);
+
+        double size1 = neighborList.getListOfNeighbors().size();
+        double size2 = neighborList2.getListOfNeighbors().size();
+        double min = size2;
+        if (size1 < size2) {
+            min = size1;
+        }
+        if (min == size2) {
+            for (Vertex<T> value : neighborList2.getListOfNeighbors()) {
+                if (neighborList.getListOfNeighbors().contains(value))
+                    intersection.add(value);
+            }
+        } else {
+            for (Vertex<T> value : neighborList.getListOfNeighbors()) {
+                if (neighborList2.getListOfNeighbors().contains(value))
+                    intersection.add(value);
+            }
+        }
+
+        return new NeighborList<T>(neighborList.getHeadVertex(), intersection);
     }
 
-    /* demon algorithm. */
+    /**
+     * Main demon algorithm.
+     * 
+     * @param graph
+     * @param mergeFactor
+     * @param mergingType
+     * @throws IOException
+     */
     public void execute(Network<T> graph, double mergeFactor, int mergingType)
             throws IOException {
+        int count = 0;
         pool = new CommunityList<T>();
+        cleanedPool = new CommunityList<T>();
         @SuppressWarnings("unchecked")
         Vertex<T>[] vertices = new Vertex[graph.getGraph().size()];
         graph.getGraph().keySet().toArray(vertices);
@@ -154,8 +207,10 @@ public class Demon<T> {
             /* merge each local communities found with global communities */
             for (Community<T> localCommunity : localCommunities
                     .getCommunities()) {
-
+                localCommunity.setIndex(count);
+                count++;
                 localCommunity.getMembers().add(vertex.getValue());
+
                 pool.getCommunities().add(localCommunity);/*
                                                            * add all communities
                                                            * to community pool
@@ -167,7 +222,7 @@ public class Demon<T> {
             System.out.println("Number of communities found by LP is "
                     + pool.getCommunities().size());
             long startTime = System.nanoTime();
-            subLinearMerging(mergeFactor);
+            superLinearMerge(mergeFactor);
             long estimatedTime = System.nanoTime() - startTime;
             System.out.println("Time: " + estimatedTime
                     + " with Sublinear Merge ");
@@ -183,124 +238,121 @@ public class Demon<T> {
 
     }
 
-    private void subLinearMerging(double mergeFactor) {
+    /**
+     * Inverted indexed based merging. First creates inverted index list from
+     * communities. For each vertex , we have corresponding communities in
+     * posting list. Then this inverted index list is used to build community
+     * dependency graph. By using this dependency graph we perform merging.
+     * There is no unnecessary comparison.
+     * 
+     * @param mergeFactor
+     */
+    private void superLinearMerge(double mergeFactor) {
         constructInvertedIndex();
-        for (Community<T> community : pool.getCommunities()) {
+        System.out.println("Merging---> Started.");
 
-            while (true) {
-
-                if (community == null
-                        || community.getDependencyList().size() == 0)
-                    break;
-                boolean merged = false;
-                for (Community<T> c : community.getDependencyList()) {
-                    if (isMergible(community, c, mergeFactor)) {
-                        community.getMembers().addAll(c.getMembers());
-                        c.getDependencyList().remove(community);
-                        community.getDependencyList().addAll(
-                                c.getDependencyList());
-
-                        community.getDependencyList().remove(c);
-
-                        for (Community<T> t : c.getDependencyList()) {
-                            t.getDependencyList().remove(c);
-                            t.getDependencyList().add(community);
-                        }
-                        pool.getCommunities().set(
-                                pool.getCommunities().indexOf(c), null);
-                        merged = true;
-                        break;
-                    }
+        List<Integer> temporaryPool = null;
+        int n = pool.getCommunities().size();
+        int i = n - 2;
+        boolean merged = false;
+        while (i >= 0) {
+            do {
+                Community<T> mergerCommunity = pool.getCommunities().get(i);
+                temporaryPool = new LinkedList<Integer>();
+                Integer indexOfCommunity;
+                for (Community<T> dependecy : mergerCommunity
+                        .getDependencyList()) {
+                    indexOfCommunity = dependecy.getIndex();
+                    if (indexOfCommunity > mergerCommunity.getIndex())
+                        temporaryPool.add(indexOfCommunity);
                 }
-                if (!merged)
-                    break;
-            }
+                merged = false;
+                for (Integer index : temporaryPool) {
+                    Community<T> mergedCommunity = pool.getCommunities().get(
+                            index);
+                    if (isMergible(mergerCommunity, mergedCommunity,
+                            mergeFactor)) {
+                        mergerCommunity.getMembers().addAll(
+                                mergedCommunity.getMembers());
+                        merged = true;
+                        mergedCommunity.getDependencyList().remove(
+                                mergerCommunity);
+                        for (Community<T> c : mergedCommunity
+                                .getDependencyList()) {
+                            c.getDependencyList().remove(mergedCommunity);
+                            c.getDependencyList().add(mergerCommunity);
+                            mergerCommunity.getDependencyList().add(c);
+                        }
+                        mergerCommunity.getDependencyList().remove(
+                                mergedCommunity);
+                        pool.getCommunities().set(index, null);
+                    }
 
+                }
+            } while (merged);
+            i = i - 1;
         }
+
         cleanPool();
     }
 
-    
+
+    /**
+     * This method performs merging. This is the brute force approach.
+     * Complexity is very high.
+     * 
+     * @param mergeFactor
+     */
     private void quadraticMerging(double mergeFactor) {
         System.out.println("Merging---> Started.");
         /* merging part pooling approach */
         int j;
         int n = pool.getCommunities().size();
         int i = n - 2;
+        boolean merged = false;
         while (i >= 0) {
-            if (pool.getCommunities().get(i) != null) {
-                j = i + 1;
+
+            j = i + 1;
+            do {
+                merged = false;
                 while (j < n) {
-                    if (pool.getCommunities().get(j) == null) {
-                        j = j + 1;
-                    } else if (!(isMergible(pool.getCommunities().get(i), pool
-                            .getCommunities().get(j), mergeFactor))) {
-                        j = j + 1;
-                    } else {
+
+                    if (isMergible(pool.getCommunities().get(i), pool
+                            .getCommunities().get(j), mergeFactor)) {
                         pool.getCommunities()
                                 .get(i)
                                 .getMembers()
                                 .addAll(pool.getCommunities().get(j)
                                         .getMembers());
                         pool.getCommunities().set(j, null);
-                        j = i + 1;
+                        merged = true;
                     }
+                    j = j + 1;
                 }
-            }
+            } while (merged);
+
             i = i - 1;
         }
         cleanPool();
     }
 
-    private void improvedQuadraticMerging(double mergeFactor) {
-        System.out.println("Merging---> Started.");
-        /* merging part pooling approach */
-        int j;
-        int n = pool.getCommunities().size();
-        int i = n - 2;
-        while (i >= 0) {
-            if (pool.getCommunities().get(i) != null) {
-                j = i + 1;
-                boolean merged = false;
-                do {
-                    merged = false;
-                    while (j < n) {
-                        if (pool.getCommunities().get(j) != null) {
-                            if (!(isMergible(pool.getCommunities().get(i), pool
-                                    .getCommunities().get(j), mergeFactor))) {
-                            } else {
-                                merged = true;
-                                pool.getCommunities()
-                                        .get(i)
-                                        .getMembers()
-                                        .addAll(pool.getCommunities().get(j)
-                                                .getMembers());
-                                pool.getCommunities().set(j, null);
-                            }
-                        }
-                        j = j + 1;
-                    }
-                } while(merged);
-            }
-            i = i - 1;
-        }
-        cleanPool();
-    }
-    
+    /**
+     * This method removes null values from community pool.
+     */
     private void cleanPool() {
-<<<<<<< HEAD
-        // TODO: improve this
-        for (Community<T> community : pool.getCommunities()) {
-=======
         Iterator<Community<T>> iter = pool.getCommunities().iterator();
         while (iter.hasNext()) {
             Community<T> community = iter.next();
->>>>>>> branch 'master' of ssh://git@github.com/MuratTaze/DemonParallel.git
-            if (community == null)
-                iter.remove();
+            if (community != null)
+                cleanedPool.getCommunities().add(community);
         }
+        pool = cleanedPool;
     }
 
+    /**
+     * This method constructs inverted index list then it builds community
+     * dependency graph.
+     */
     private void constructInvertedIndex() {
         HashMap<T, ArrayList<Community<T>>> invertedIndex = null;
 
@@ -328,7 +380,17 @@ public class Demon<T> {
                 list.get(i).getDependencyList().remove(list.get(i));
             }
         }
-
+        new CompactHashMap<Community<T>, CompactHashSet<Integer>>();
+        ArrayList<Integer> list;
+        for (Community<T> community : pool.getCommunities()) {
+            list = new ArrayList<Integer>();
+            for (Community<T> dependecy : community.getDependencyList()) {
+                Integer index = dependecy.getIndex();
+                if (index > community.getIndex())
+                    list.add(index);
+            }
+        }
         System.out.println("dependency construction--> done.");
+
     }
 }
