@@ -3,44 +3,53 @@ package demon.sequential;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import labelPropagation.Community;
 import labelPropagation.GraphLoader;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
+import net.ontopia.utils.CompactHashSet;
 
 public class DemonSequantial {
 
     public static void main(String[] args) throws IOException {
-        GraphLoader graphLoader = new GraphLoader("ACM_Formatted .txt");
+        GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
         System.out.println("Network construction---> Done.");
         Demon<Integer> demon = new Demon<Integer>();
         /*
          * change merge factor to see its effect. 1 means merge communities if
          * bigger community fully contains smaller community
          */
-        demon.execute(graphLoader.getNetwork(), 0.5);
+        demon.execute(graphLoader.getNetwork(), 0.5,0);
         System.out.println("Demon execution---> Done.");
-        PrintWriter writer = new PrintWriter(new File("EnronOutput.txt"));
+        PrintWriter writer = new PrintWriter(new File("QuadraticOutput.txt"));
         writer.print(demon.getGlobalCommunities());
         writer.flush();
         writer.close();
-        System.out.println("Output ---> Done.");
-        double total_conductance = 0;
-        for (int i = 0; i < demon.getGlobalCommunities().getCommunities()
-                .size(); i++) {
-            total_conductance += conductance(demon.getGlobalCommunities()
-                    .getCommunities().get(i), graphLoader.getNetwork());
-        }
-        double average_conductance = total_conductance
-                / demon.getGlobalCommunities().getCommunities().size();
-        System.out.println("Average conductance value is "
-                + average_conductance);
+        System.out.println("Output is done for Quadratic method.");
+        averageConductance(graphLoader, demon);
+        demon.execute(graphLoader.getNetwork(), 0.5,1);
+        PrintWriter writer2 = new PrintWriter(new File("SubLinearOutput.txt"));
+        writer2.print(demon.getGlobalCommunities());
+        writer2.flush();
+        writer2.close();
+        System.out.println("Output is done for Sublinear method.");
+        averageConductance(graphLoader, demon);
 
     }
-
+private static void averageConductance(GraphLoader graphLoader,Demon<Integer> demon){
+    double total_conductance = 0;
+    for (int i = 0; i < demon.getGlobalCommunities().getCommunities()
+            .size(); i++) {
+        total_conductance += conductance(demon.getGlobalCommunities()
+                .getCommunities().get(i), graphLoader.getNetwork());
+    }
+    double average_conductance = total_conductance
+            / demon.getGlobalCommunities().getCommunities().size();
+    System.out.println("Average conductance value is "
+            + average_conductance);
+}
     private static double conductance(Community<Integer> community,
             Network<Integer> network) {
         double in_degree = 0;
@@ -60,12 +69,12 @@ public class DemonSequantial {
 
     }
 
-    private static double degree(HashSet<Vertex<Integer>> all_neigbors,
-            HashSet<Integer> community_neigbors) {
+    private static double degree(CompactHashSet<Vertex<Integer>> compactHashSet,
+            CompactHashSet<Integer> compactHashSet2) {
         double degree = 0;
-        Iterator<Integer> iter = community_neigbors.iterator();
+        Iterator<Integer> iter = compactHashSet2.iterator();
         while (iter.hasNext()) {
-            if (all_neigbors.contains(new Vertex<Integer>(iter.next()))) {
+            if (compactHashSet.contains(new Vertex<Integer>(iter.next()))) {
                 degree++;
             }
         }
