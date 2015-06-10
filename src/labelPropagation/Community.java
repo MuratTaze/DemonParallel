@@ -1,7 +1,6 @@
 package labelPropagation;
 
 import java.io.Serializable;
-import java.util.HashSet;
 
 import net.ontopia.utils.CompactHashSet;
 
@@ -13,6 +12,14 @@ public class Community<T> implements Serializable {
     private T communityId;
     private CompactHashSet<T> members;
     private CompactHashSet<Community<T>> dependencyList;
+    private int index;
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
     public CompactHashSet<Community<T>> getDependencyList() {
         return dependencyList;
