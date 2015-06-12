@@ -251,43 +251,44 @@ public class Demon<T> {
         constructInvertedIndex();
         System.out.println("Merging---> Started.");
 
-        List<Integer> temporaryPool = null;
         int n = pool.getCommunities().size();
+        int[] temporaryPool = new int[n];
         int i = n - 2;
         boolean merged = false;
         while (i >= 0) {
             do {
                 Community<T> mergerCommunity = pool.getCommunities().get(i);
-                temporaryPool = new LinkedList<Integer>();
-                Integer indexOfCommunity;
-                for (Community<T> dependecy : mergerCommunity
-                        .getDependencyList()) {
-                    indexOfCommunity = dependecy.getIndex();
+                if (mergerCommunity == null)
+                    continue;
+                int temporaryPoolSize = 0;
+                for (Community<T> dependecy : 
+                        mergerCommunity.getDependencyList()) {
+                    int indexOfCommunity = dependecy.getIndex();
                     if (indexOfCommunity > mergerCommunity.getIndex())
-                        temporaryPool.add(indexOfCommunity);
+                        temporaryPool[temporaryPoolSize++] =  indexOfCommunity;
                 }
                 merged = false;
-                for (Integer index : temporaryPool) {
-                    Community<T> mergedCommunity = pool.getCommunities().get(
-                            index);
-                    if (isMergible(mergerCommunity, mergedCommunity,
-                            mergeFactor)) {
-                        mergerCommunity.getMembers().addAll(
-                                mergedCommunity.getMembers());
+                for (int k = 0; k < temporaryPoolSize; ++k) {
+                    int index = temporaryPool[k];
+                    Community<T> mergedCommunity = 
+                        pool.getCommunities().get(index);
+                    if (isMergible(mergerCommunity, mergedCommunity, 
+                                   mergeFactor)) {
                         merged = true;
-                        mergedCommunity.getDependencyList().remove(
-                                mergerCommunity);
-                        for (Community<T> c : mergedCommunity
-                                .getDependencyList()) {
+                        mergerCommunity.getMembers().addAll(
+                            mergedCommunity.getMembers());
+                        mergerCommunity.getDependencyList().remove(
+                            mergedCommunity);
+                        for (Community<T> c : 
+                                mergedCommunity.getDependencyList()) {
+                            if (c == mergerCommunity)
+                                continue;
                             c.getDependencyList().remove(mergedCommunity);
                             c.getDependencyList().add(mergerCommunity);
                             mergerCommunity.getDependencyList().add(c);
                         }
-                        mergerCommunity.getDependencyList().remove(
-                                mergedCommunity);
                         pool.getCommunities().set(index, null);
                     }
-
                 }
             } while (merged);
             i = i - 1;
@@ -311,12 +312,10 @@ public class Demon<T> {
         int i = n - 2;
         boolean merged = false;
         while (i >= 0) {
-
             j = i + 1;
             do {
                 merged = false;
                 while (j < n) {
-
                     if (isMergible(pool.getCommunities().get(i), pool
                             .getCommunities().get(j), mergeFactor)) {
                         pool.getCommunities()
@@ -330,7 +329,6 @@ public class Demon<T> {
                     j = j + 1;
                 }
             } while (merged);
-
             i = i - 1;
         }
         cleanPool();
