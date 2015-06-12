@@ -14,14 +14,14 @@ import net.ontopia.utils.CompactHashSet;
 public class DemonSequantial {
 
     public static void main(String[] args) throws IOException {
-        GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
+        GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
         System.out.println("Network construction---> Done.");
         Demon<Integer> demon = new Demon<Integer>();
         /*
          * change merge factor to see its effect. 1 means merge communities if
          * bigger community fully contains smaller community
          */
-        demon.execute(graphLoader.getNetwork(), 0.5, 0);
+       demon.execute(graphLoader.getNetwork(), 0.5, 0);
         System.out.println("Demon execution---> Done.");
         PrintWriter writer = new PrintWriter(new File("QuadraticOutput.txt"));
         writer.print(demon.getGlobalCommunities());
@@ -29,13 +29,13 @@ public class DemonSequantial {
         writer.close();
         System.out.println("Output is done for Quadratic method.");
         averageConductance(graphLoader, demon);
-        demon.execute(graphLoader.getNetwork(), 0.5, 1);
+      /*   demon.execute(graphLoader.getNetwork(), 0.5, 1);
         PrintWriter writer2 = new PrintWriter(new File("SubLinearOutput.txt"));
         writer2.print(demon.getGlobalCommunities());
         writer2.flush();
         writer2.close();
         System.out.println("Output is done for Sublinear method.");
-        averageConductance(graphLoader, demon);
+        averageConductance(graphLoader, demon);*/
 
     }
 

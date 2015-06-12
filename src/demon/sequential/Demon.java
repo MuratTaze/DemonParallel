@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import labelPropagation.Community;
@@ -22,7 +21,6 @@ import org.pcj.PCJ;
 public class Demon<T> {
 
     private CommunityList<T> pool = null;
-    private CommunityList<T> cleanedPool = null;
     private LabelPropagation<T> lp;
 
     public CommunityList<T> getGlobalCommunities() {
@@ -191,7 +189,7 @@ public class Demon<T> {
             throws IOException {
         int count = 0;
         pool = new CommunityList<T>();
-        cleanedPool = new CommunityList<T>();
+
         @SuppressWarnings("unchecked")
         Vertex<T>[] vertices = new Vertex[graph.getGraph().size()];
         graph.getGraph().keySet().toArray(vertices);
@@ -207,15 +205,16 @@ public class Demon<T> {
             /* merge each local communities found with global communities */
             for (Community<T> localCommunity : localCommunities
                     .getCommunities()) {
+                localCommunity.getMembers().add(vertex.getValue());
+            }
+            quadraticMerging(localCommunities, 0.9);
+            localCommunities = cleanPool(localCommunities);
+
+            for (Community<T> localCommunity : localCommunities
+                    .getCommunities()) {
                 localCommunity.setIndex(count);
                 count++;
-                localCommunity.getMembers().add(vertex.getValue());
-
-                pool.getCommunities().add(localCommunity);/*
-                                                           * add all communities
-                                                           * to community pool
-                                                           */
-
+                pool.getCommunities().add(localCommunity);
             }
         }
 
@@ -231,12 +230,12 @@ public class Demon<T> {
             System.out.println("Number of communities found by LP is "
                     + pool.getCommunities().size());
             long startTime = System.nanoTime();
-            quadraticMerging(mergeFactor);
+            quadraticMerging(pool, mergeFactor);
             long estimatedTime = System.nanoTime() - startTime;
             System.out.println("Time: " + estimatedTime
                     + " with Quadratic Merge ");
         }
-
+        pool = cleanPool(pool);
     }
 
     /**
@@ -251,24 +250,35 @@ public class Demon<T> {
     private void superLinearMerge(double mergeFactor) {
         constructInvertedIndex();
         System.out.println("Merging---> Started.");
-
+        int count = 0;
+        int processed = 0;
         List<Integer> temporaryPool = null;
+        temporaryPool = new ArrayList<Integer>(1000);
         int n = pool.getCommunities().size();
         int i = n - 2;
         boolean merged = false;
         while (i >= 0) {
             do {
                 Community<T> mergerCommunity = pool.getCommunities().get(i);
-                temporaryPool = new LinkedList<Integer>();
+
+                count = 0;
+                processed = 0;
                 Integer indexOfCommunity;
                 for (Community<T> dependecy : mergerCommunity
                         .getDependencyList()) {
                     indexOfCommunity = dependecy.getIndex();
-                    if (indexOfCommunity > mergerCommunity.getIndex())
-                        temporaryPool.add(indexOfCommunity);
+                    if (indexOfCommunity > mergerCommunity.getIndex()) {
+                        temporaryPool.set(count, indexOfCommunity);
+                        count++;
+                    }
                 }
+                System.out.println(i + " out of "
+                        + pool.getCommunities().size() + " dependency size "
+                        + mergerCommunity.getDependencyList().size()
+                        + " temporary size " + count);
                 merged = false;
                 for (Integer index : temporaryPool) {
+                     
                     Community<T> mergedCommunity = pool.getCommunities().get(
                             index);
                     if (isMergible(mergerCommunity, mergedCommunity,
@@ -289,12 +299,12 @@ public class Demon<T> {
                         pool.getCommunities().set(index, null);
                     }
 
+                    processed++;
+
                 }
             } while (merged);
             i = i - 1;
         }
-
-        cleanPool();
     }
 
     /**
@@ -303,8 +313,8 @@ public class Demon<T> {
      * 
      * @param mergeFactor
      */
-    private void quadraticMerging(double mergeFactor) {
-        System.out.println("Merging---> Started.");
+    private void quadraticMerging(CommunityList<T> pool, double mergeFactor) {
+
         /* merging part pooling approach */
         int j;
         int n = pool.getCommunities().size();
@@ -333,20 +343,20 @@ public class Demon<T> {
 
             i = i - 1;
         }
-        cleanPool();
     }
 
     /**
      * This method removes null values from community pool.
      */
-    private void cleanPool() {
+    private CommunityList<T> cleanPool(CommunityList<T> pool) {
         Iterator<Community<T>> iter = pool.getCommunities().iterator();
+        CommunityList<T> cleanedPool = new CommunityList<T>();
         while (iter.hasNext()) {
             Community<T> community = iter.next();
             if (community != null)
                 cleanedPool.getCommunities().add(community);
         }
-        pool = cleanedPool;
+        return cleanedPool;
     }
 
     /**
