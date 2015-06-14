@@ -221,7 +221,6 @@ public class Demon<T> {
                 pool.getCommunities().add(localCommunity);
             }
         }
-
         System.out.println("Number of communities found by LP is "
                            + pool.getCommunities().size());
         long startTime = System.nanoTime();
@@ -282,7 +281,6 @@ public class Demon<T> {
                                 needsMergeCheck[c.getIndex()] = true;
                         }
                         merge(mergerComm, mergedComm);
-                        pool.getCommunities().set(index, null);
                     } else {
                         needsMergeCheck[index] = false;
                     }
@@ -297,33 +295,24 @@ public class Demon<T> {
         // members
         int size1 = mergerComm.getMembers().size();
         int size2 = mergedComm.getMembers().size();
-        int max = Math.max(size1, size2);
-        if (size1 == max) {
+        if (size1 > size2 || (size1 == size2 && 
+                mergerComm.getIndex() < mergedComm.getIndex()) ) {
             mergerComm.getMembers().addAll(mergedComm.getMembers());
-        } else {
-            mergedComm.getMembers().addAll(mergerComm.getMembers());
-            mergerComm.setMembers(mergedComm.getMembers());
-        }
-        // dependency lists
-        mergerComm.getDependencyList().remove(mergedComm);
-        mergedComm.getDependencyList().remove(mergerComm);
-        for (Community<T> c : mergedComm.getDependencyList()) {
-            c.getDependencyList().remove(mergedComm);
-            c.getDependencyList().add(mergerComm);
-        }
-        size1 = mergerComm.getDependencyList().size();
-        size2 = mergedComm.getDependencyList().size();
-        max = Math.max(size1, size2);
-        if (size1 == max)
-        {
+            mergerComm.getDependencyList().remove(mergedComm);
+            mergedComm.getDependencyList().remove(mergerComm);
+            for (Community<T> c : mergedComm.getDependencyList()) {
+                c.getDependencyList().add(mergerComm);
+                c.getDependencyList().remove(mergedComm);
+            }
             mergerComm.getDependencyList().addAll(
                 mergedComm.getDependencyList());
+            pool.getCommunities().set(mergedComm.getIndex(), null);
         } else {
-            mergedComm.getDependencyList().addAll(
-                mergerComm.getDependencyList());
-            mergerComm.setDependencyList(
-                mergedComm.getDependencyList());
-        }    
+            merge(mergedComm, mergerComm);
+            pool.getCommunities().set(mergedComm.getIndex(), null);
+            pool.getCommunities().set(mergerComm.getIndex(), mergedComm);
+            mergedComm.setIndex(mergerComm.getIndex());
+        }
     }
 
     private void superLinearMerge(double mergeFactor) {

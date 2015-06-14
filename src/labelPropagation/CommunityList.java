@@ -2,6 +2,7 @@ package labelPropagation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import net.ontopia.utils.CompactHashSet;
 
@@ -54,5 +55,4 @@ public class CommunityList<T> implements Serializable {
     public String toString() {
         return "CommunityList ..\n" + communities+"\n" ;
     }
-
 }
