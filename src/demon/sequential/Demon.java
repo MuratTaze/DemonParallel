@@ -230,7 +230,7 @@ public class Demon<T> {
         } else {
             quadraticMerging(pool, mergeFactor);
         }
-        long estimatedTime = (System.nanoTime() - startTime) / 1000000000L;
+        double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
         System.out.println("Time: " + estimatedTime + " seconds");
         pool = cleanPool(pool);
         System.out.println("Number of communities after merge is "
