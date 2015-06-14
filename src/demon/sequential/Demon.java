@@ -254,11 +254,10 @@ public class Demon<T> {
         int i = n - 2;
         boolean merged = false;
         while (i >= 0) {
+            Community<T> mergerComm = pool.getCommunities().get(i);
+            if (mergerComm == null)
+                continue;
             do {
-                Community<T> mergerComm = pool.getCommunities().get(i);
-                // System.out.println("i " + i + " out of " + n);
-                if (mergerComm == null)
-                    continue;
                 int temporaryPoolSize = 0;
                 for (Community<T> dependecy : mergerComm.getDependencyList()) {
                     int indexOfCommunity = dependecy.getIndex();
@@ -280,7 +279,7 @@ public class Demon<T> {
                             if (c.getIndex() > mergerComm.getIndex())
                                 needsMergeCheck[c.getIndex()] = true;
                         }
-                        merge(mergerComm, mergedComm, true);
+                        mergerComm = merge(mergerComm, mergedComm, true);
                     } else {
                         needsMergeCheck[index] = false;
                     }
@@ -290,8 +289,8 @@ public class Demon<T> {
         }
     }
     
-    private void merge(Community<T> mergerComm, Community<T> mergedComm,
-                       boolean withDependencies)
+    private Community<T> merge(Community<T> mergerComm, Community<T> mergedComm, 
+                               boolean withDependencies)
     {
         // members
         int size1 = mergerComm.getMembers().size();
@@ -310,11 +309,13 @@ public class Demon<T> {
                     mergedComm.getDependencyList());
             }
             pool.getCommunities().set(mergedComm.getIndex(), null);
+            return mergerComm;
         } else {
             merge(mergedComm, mergerComm, withDependencies);
             pool.getCommunities().set(mergedComm.getIndex(), null);
             pool.getCommunities().set(mergerComm.getIndex(), mergedComm);
             mergedComm.setIndex(mergerComm.getIndex());
+            return mergedComm;
         }
     }
 
@@ -328,10 +329,10 @@ public class Demon<T> {
         int i = n - 2;
         boolean merged = false;
         while (i >= 0) {
+            Community<T> mergerComm = pool.getCommunities().get(i);
+            if (mergerComm == null)
+                continue;
             do {
-                Community<T> mergerComm = pool.getCommunities().get(i);
-                if (mergerComm == null)
-                    continue;
                 int temporaryPoolSize = 0;
                 for (Community<T> dependecy : mergerComm.getDependencyList()) {
                     int indexOfCommunity = dependecy.getIndex();
@@ -345,7 +346,7 @@ public class Demon<T> {
                     Community<T> mergedComm = pool.getCommunities().get(index);
                     if (isMergible(mergerComm, mergedComm, mergeFactor)) {
                         merged = true;
-                        merge(mergerComm, mergedComm, true);
+                        mergerComm = merge(mergerComm, mergedComm, true);
                     } 
                 }
             } while (merged);
@@ -368,16 +369,16 @@ public class Demon<T> {
         boolean merged = false;
         while (i >= 0) {
             j = i + 1;
+            Community<T> mergerComm = pool.getCommunities().get(i);
+            if (mergerComm == null)
+                continue;
             do {
-                Community<T> mergerComm = pool.getCommunities().get(i);
-                if (mergerComm == null)
-                    continue;
                 merged = false;
                 while (j < n) {
                     Community<T> mergedComm = pool.getCommunities().get(j);
                     if (mergedComm != null &&
                         isMergible(mergerComm, mergedComm, mergeFactor)) {
-                        merge(mergerComm, mergedComm, false);
+                        mergerComm = merge(mergerComm, mergedComm, false);
                         merged = true;
                     }
                     j = j + 1;

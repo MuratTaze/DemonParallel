@@ -41,7 +41,6 @@ public class LabelPropagation<T> {
                         this.communites.get(vertex.getValue()));
             }
         }
-
         return communities;
 
     }
@@ -184,7 +183,6 @@ public class LabelPropagation<T> {
             vertices.set(i, temp);
             i--;
         }
-
     }
 
     public void setNetwork(HashMap<Vertex<T>, NeighborList<T>> network) {
