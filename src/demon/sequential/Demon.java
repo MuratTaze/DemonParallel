@@ -297,7 +297,7 @@ public class Demon<T> {
         }
     }
     
-    void merge(Community<T> mergerComm, Community<T> mergedComm)
+    private void merge(Community<T> mergerComm, Community<T> mergedComm)
     {
         // members
         int size1 = mergerComm.getMembers().size();
