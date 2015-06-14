@@ -21,7 +21,7 @@ public class DemonSequantial {
          * change merge factor to see its effect. 1 means merge communities if
          * bigger community fully contains smaller community
          */
-        demon.execute(graphLoader.getNetwork(), 1.0, 0);
+        demon.execute(graphLoader.getNetwork(), 0.5, 0);
         System.out.println("Demon execution---> Done.");
         PrintWriter writer = new PrintWriter(new File("QuadraticOutput.txt"));
         writer.print(demon.getGlobalCommunities());
@@ -31,8 +31,10 @@ public class DemonSequantial {
         System.out.println("Total number of comparison is "
                 + demon.getNumberOfComparison());
         demon.setNumberOfComparison(0);
-        averageConductance(graphLoader, demon); /**/
-        demon.execute(graphLoader.getNetwork(), 1.0, 1);
+        averageConductance(graphLoader, demon); 
+        System.out.println();
+        demon.execute(graphLoader.getNetwork(), 0.5, 1);
+        System.out.println("Demon execution---> Done.");
         PrintWriter writer2 = new PrintWriter(new File("SubLinearOutput.txt"));
         writer2.print(demon.getGlobalCommunities());
         writer2.flush();

@@ -222,23 +222,16 @@ public class Demon<T> {
             }
         }
 
+        System.out.println("Number of communities found by LP is "
+                           + pool.getCommunities().size());
+        long startTime = System.nanoTime();
         if (mergingType == 1) {
-            System.out.println("Number of communities found by LP is "
-                    + pool.getCommunities().size());
-            long startTime = System.nanoTime();
             improvedSuperLinearMerge(mergeFactor);
-            long estimatedTime = System.nanoTime() - startTime;
-            System.out.println("Time: " + estimatedTime
-                    + " with Sublinear Merge ");
         } else {
-            System.out.println("Number of communities found by LP is "
-                    + pool.getCommunities().size());
-            long startTime = System.nanoTime();
             quadraticMerging(pool, mergeFactor);
-            long estimatedTime = System.nanoTime() - startTime;
-            System.out.println("Time: " + estimatedTime
-                    + " with Quadratic Merge ");
         }
+        long estimatedTime = (System.nanoTime() - startTime) / 1000000000L;
+        System.out.println("Time: " + estimatedTime + " seconds");
         pool = cleanPool(pool);
     }
 
