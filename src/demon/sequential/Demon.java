@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
@@ -18,6 +16,7 @@ import net.ontopia.utils.CompactHashMap;
 import net.ontopia.utils.CompactHashSet;
 
 import org.pcj.PCJ;
+
 
 public class Demon<T> {
 
