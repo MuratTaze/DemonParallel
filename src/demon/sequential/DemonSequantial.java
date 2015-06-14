@@ -29,7 +29,7 @@ public class DemonSequantial {
         writer.close();
         System.out.println("Output is done for Quadratic method.");
         System.out.println("Total number of comparison is "
-                + demon.getNumberOfComparison());
+                + demon.getNumberOfComparison());   
         demon.setNumberOfComparison(0);
         averageConductance(graphLoader, demon); 
         System.out.println();
