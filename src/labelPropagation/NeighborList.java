@@ -1,7 +1,6 @@
 package labelPropagation;
 
 import java.io.Serializable;
-import java.util.HashSet;
 
 import net.ontopia.utils.CompactHashSet;
 
