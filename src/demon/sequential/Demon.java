@@ -233,6 +233,8 @@ public class Demon<T> {
         long estimatedTime = (System.nanoTime() - startTime) / 1000000000L;
         System.out.println("Time: " + estimatedTime + " seconds");
         pool = cleanPool(pool);
+        System.out.println("Number of communities after merge is "
+            + pool.getCommunities().size());
     }
 
     /**
