@@ -26,7 +26,7 @@ public class Indexer<T> {
         int threadId = PCJ.myId();
         int numberOfThreads = PCJ.threadCount();
         int numberOfVertices = network.getGraph().size();
-        int arraySize = (numberOfVertices / numberOfThreads) + 1;
+        int arraySize = (numberOfVertices / numberOfThreads) +1;
         int firstIndex = threadId * arraySize;
         int lastIndex = firstIndex + arraySize - 1;
         localNetwork = new Network<T>(new HashMap<Vertex<T>, NeighborList<T>>());
@@ -35,11 +35,14 @@ public class Indexer<T> {
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : network.getGraph()
                 .entrySet()) {
-            int hashCode = hash(entry.getKey().hashCode(), numberOfVertices + 1);
+            int hashCode = hash(entry.getKey().hashCode(), numberOfVertices);
             if ((hashCode >= firstIndex) && (hashCode <= lastIndex)) {
                 localNetwork.getGraph().put(entry.getKey(), entry.getValue());
+                /*burada sıkıntı var*/
+                int localIndex = hashCode%arraySize;
+                
                 addElementToArray(entry.getValue(), array,
-                        hash(entry.getKey().hashCode(), arraySize));
+                       localIndex);
             }
         }
         return array;

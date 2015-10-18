@@ -1,18 +1,20 @@
 package labelPropagation;
 
 import java.io.Serializable;
+import java.util.HashSet;
 
-import net.ontopia.utils.CompactHashSet;
 
-public class Community<T> implements Serializable {
+
+public class Community<T> implements Serializable, Comparable<Community<T>> {
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
     private T communityId;
-    private CompactHashSet<T> members;
-    private CompactHashSet<Community<T>> dependencyList;
+    private HashSet<T> members;
+    private HashSet<Community<T>> dependencyList;
     private int index;
+
     public int getIndex() {
         return index;
     }
@@ -21,17 +23,17 @@ public class Community<T> implements Serializable {
         this.index = index;
     }
 
-    public CompactHashSet<Community<T>> getDependencyList() {
+    public HashSet<Community<T>> getDependencyList() {
         return dependencyList;
     }
 
-    public void setDependencyList(CompactHashSet<Community<T>> dependencyList) {
+    public void setDependencyList(HashSet<Community<T>> dependencyList) {
         this.dependencyList = dependencyList;
     }
 
     public Community() {
         super();
-        dependencyList = new CompactHashSet<Community<T>>(100);
+        dependencyList = new HashSet<Community<T>>(100);
 
     }
 
@@ -39,7 +41,7 @@ public class Community<T> implements Serializable {
         return communityId;
     }
 
-    public CompactHashSet<T> getMembers() {
+    public HashSet<T> getMembers() {
         return members;
     }
 
@@ -47,7 +49,7 @@ public class Community<T> implements Serializable {
         this.communityId = communityId;
     }
 
-    public void setMembers(CompactHashSet<T> members) {
+    public void setMembers(HashSet<T> members) {
         this.members = members;
     }
 
@@ -55,6 +57,11 @@ public class Community<T> implements Serializable {
     public String toString() {
         return "\n    Community [communityId=" + communityId + ", members="
                 + members + "]\n";
+    }
+
+    public int compareTo(Community<T> o) {
+        // TODO Auto-generated method stub
+        return this.members.size() - o.members.size();
     }
 
 }

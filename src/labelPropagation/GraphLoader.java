@@ -4,8 +4,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 
-import net.ontopia.utils.CompactHashSet;
 
 public class GraphLoader {
 	/* vertices and neighbor lists */
@@ -47,7 +47,7 @@ public class GraphLoader {
 			if (map.get(arg1) == null) {
 
 				NeighborList<Integer> neighborList = new NeighborList<Integer>(
-						arg1, new CompactHashSet<Vertex<Integer>>());
+						arg1, new HashSet<Vertex<Integer>>());
 				neighborList.getListOfNeighbors().add(arg2);
 				map.put(arg1, neighborList);
 
@@ -58,7 +58,7 @@ public class GraphLoader {
 			if (map.get(arg2) == null) {
 
 				NeighborList<Integer> neighborList = new NeighborList<Integer>(
-						arg2, new CompactHashSet<Vertex<Integer>>());
+						arg2, new HashSet<Vertex<Integer>>());
 				neighborList.getListOfNeighbors().add(arg1);
 				map.put(arg2, neighborList);
 
@@ -73,9 +73,7 @@ public class GraphLoader {
 		numberOfElements = map.size();
 	}
 
-	public HashMap<Vertex<Integer>, NeighborList<Integer>> getMap() {
-		return map;
-	}
+	
 
 	public Network<Integer> getNetwork() {
 		return new Network<Integer>(this.map);

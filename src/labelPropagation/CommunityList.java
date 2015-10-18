@@ -3,8 +3,9 @@ package labelPropagation;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 
-import net.ontopia.utils.CompactHashSet;
+
 
 public class CommunityList<T> implements Serializable {
 
@@ -29,7 +30,7 @@ public class CommunityList<T> implements Serializable {
     public void createCommunity(T realId,T communityId) {
         Community<T> community = new Community<T>();
         community.setCommunityId(communityId);
-        community.setMembers(new CompactHashSet<T>());
+        community.setMembers(new HashSet<T>());
         community.getMembers().add(realId);
         communities.add(community);
     }
