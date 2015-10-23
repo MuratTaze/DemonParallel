@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.pcj.PCJ;
+
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
 import labelPropagation.GraphLoader;
@@ -15,16 +17,15 @@ import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
 
-import org.pcj.PCJ;
-import org.pcj.Shared;
-import org.pcj.StartPoint;
-import org.pcj.Storage;
-
+@SuppressWarnings("rawtypes")
 public class Demon<T> {
+
     public ArrayList[] requestArray, responseArray;
     private CommunityList<T> pool = null;
     private LabelPropagation<T> lp;
     private int numberOfComparison = 0;
+    public ArrayList[] requests;
+    public ArrayList[] responses;
 
     public int getNumberOfComparison() {
         return numberOfComparison;
@@ -45,14 +46,16 @@ public class Demon<T> {
 
     }
 
-    public Demon(ArrayList[] requestArray, ArrayList[] responseArray) {
+    public Demon(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests, ArrayList[] responses) {
         super();
         lp = new LabelPropagation<T>();
         this.requestArray = requestArray;
         this.responseArray = responseArray;
+        this.requests = requests;
+        this.responses = responses;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     private void constructBoundries(Network<T> graph, int numberOfVertices) {
 
         HashMap<Vertex<T>, HashSet<Vertex<T>>> connections = new HashMap<Vertex<T>, HashSet<Vertex<T>>>();
@@ -119,11 +122,9 @@ public class Demon<T> {
              */
             if (PCJ.myId() == i)
                 continue;
-            ArrayList<Vertex<T>> currentRequest = PCJ.get(i, "requestArray",
-                    PCJ.myId());
+            ArrayList<Vertex<T>> currentRequest = PCJ.get(i, "requestArray", PCJ.myId());
             if (currentRequest != null && currentRequest.size() != 0) {
-                ArrayList<Integer> currentDegrees = calculateDegrees(
-                        currentRequest, graph);
+                ArrayList<Integer> currentDegrees = calculateDegrees(currentRequest, graph);
                 responseArray[i] = currentDegrees;
             }
         }
@@ -134,8 +135,7 @@ public class Demon<T> {
         for (int j = 0; j < PCJ.threadCount(); j++) {
             if (PCJ.myId() == j)
                 continue;
-            ArrayList<Vertex<T>> currentResponse = PCJ.get(j, "responseArray",
-                    PCJ.myId());
+            ArrayList<Vertex<T>> currentResponse = PCJ.get(j, "responseArray", PCJ.myId());
             if (currentResponse != null && currentResponse.size() != 0) {
                 computedDegrees[j] = currentResponse;
             }
@@ -150,16 +150,15 @@ public class Demon<T> {
             if (l != null) {
                 j = 0;
                 for (Vertex<T> v : l) {
-                    /* bu liste neighborlar� getirilecekleri tutuyor */
-                    if (connections.get(v).size() > ((Integer) (computedDegrees[i]
-                            .get(j)))) {
+                    /* bu liste neighborlarý getirilecekleri tutuyor */
+                    if (connections.get(v).size() > ((Integer) (computedDegrees[i].get(j)))) {
                         if (toBeFetched[i] == null) {
                             toBeFetched[i] = new ArrayList<Vertex<T>>();
                         }
                         toBeFetched[i].add(v);
                     } else {
                         /*
-                         * bu liste connecitoionslar� tutuyor connections
+                         * bu liste connecitoionslarý tutuyor connections
                          * arraylist yokki!!!
                          */
                         if (toBeSent[i] == null) {
@@ -174,10 +173,10 @@ public class Demon<T> {
         }
 
         /*
-         * ilk toBeFetched yap�lacak. request array a at bunu. sonra barrieri
-         * koy. sonra her processor �eksin kendi indexini ve response arrayine
-         * de �ekti�i indexe neighborlistleri yazs�n. sonra her processor bu
-         * neighborlistleri localine �eksin
+         * ilk toBeFetched yapýlacak. request array a at bunu. sonra barrieri
+         * koy. sonra her processor çeksin kendi indexini ve response arrayine
+         * de çektiði indexe neighborlistleri yazsýn. sonra her processor bu
+         * neighborlistleri localine çeksin
          */
 
         requestArray = toBeFetched;
@@ -186,49 +185,49 @@ public class Demon<T> {
 
             if (PCJ.myId() == i1)
                 continue;
-            ArrayList<Vertex<T>> currentRequest = PCJ.get(i1, "requestArray",
-                    PCJ.myId());
+            ArrayList<Vertex<T>> currentRequest = PCJ.get(i1, "requestArray", PCJ.myId());
             if (currentRequest != null && currentRequest.size() != 0) {
-                ArrayList<NeighborList<T>> neighbors = getNeighbors(
-                        currentRequest, graph);
+                ArrayList<NeighborList<T>> neighbors = getNeighbors(currentRequest, graph);
                 responseArray[i1] = neighbors;
             }
         }
         PCJ.barrier();
-        ArrayList[] remoteNeighbors = new ArrayList[PCJ.threadCount()];
+        ArrayList[] remoteNeighborsSent = new ArrayList[PCJ.threadCount()];
+        ArrayList[] remoteNeighborsFetched = new ArrayList[PCJ
+                .threadCount()];/*
+                                 * these are the required answers for the first
+                                 * part
+                                 */
         for (int j1 = 0; j1 < PCJ.threadCount(); j1++) {
             if (PCJ.myId() == j1)
                 continue;
-            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1,
-                    "responseArray", PCJ.myId());
+            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1, "responseArray", PCJ.myId());
             if (currentResponse != null && currentResponse.size() != 0) {
-                remoteNeighbors[j1] = currentResponse;
+                remoteNeighborsFetched[j1] = currentResponse;
             }
         }
         PCJ.barrier();
 
         /*
-         * burada ise bizim dependencyleri yollayaca��z ve kar��l�k olarak
-         * aralar�nda edge var m� yok mu onun bilgisinin gelmesini bekliyoruz
+         * burada ise bizim dependencyleri yollayacaðýz ve karþýlýk olarak
+         * aralarýnda edge var mý yok mu onun bilgisinin gelmesini bekliyoruz
          */
-        /* �ncesinde request arrayi d�zenle bir bakal�m */
-        for (int i1 = 0; i1 < PCJ.threadCount(); i1++) {
+        /* öncesinde request arrayi düzenle bir bakalým */
+        ArrayList[] tempArray = convertToNeighborList(connections, toBeSent);
+        int i3 = 0;
+        for (Object obj : tempArray) {
 
-            if (PCJ.myId() == i1)
-                continue;
-            
-        
+            requests[i3] = (ArrayList<NeighborList<T>>) obj;
+            i3++;
         }
+        PCJ.barrier();
         for (int i1 = 0; i1 < PCJ.threadCount(); i1++) {
 
             if (PCJ.myId() == i1)
                 continue;
-            ArrayList<Vertex<T>> currentRequest = PCJ.get(i1, "requestArray",
-                    PCJ.myId());
+            ArrayList<NeighborList<T>> currentRequest = PCJ.get(i1, "requests", PCJ.myId());
             if (currentRequest != null && currentRequest.size() != 0) {
-                ArrayList<NeighborList<T>> neighbors = getNeighbors(
-                        currentRequest, graph);
-                responseArray[i1] = neighbors;
+                responses[i1] = findEdges(currentRequest, map);
             }
         }
         PCJ.barrier();
@@ -236,17 +235,52 @@ public class Demon<T> {
         for (int j1 = 0; j1 < PCJ.threadCount(); j1++) {
             if (PCJ.myId() == j1)
                 continue;
-            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1,
-                    "responseArray", PCJ.myId());
+            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1, "responses", PCJ.myId());
             if (currentResponse != null && currentResponse.size() != 0) {
-                remoteNeighbors[j1] = currentResponse;
+                remoteNeighborsSent[j1] = currentResponse;
             }
         }
 
     }
 
-    private ArrayList<NeighborList<T>> getNeighbors(
-            ArrayList<Vertex<T>> currentRequest, Network<T> graph) {
+    private ArrayList findEdges(ArrayList<NeighborList<T>> currentRequest, HashMap<Vertex<T>, NeighborList<T>> map) {
+        // TODO Auto-generated method stub
+
+        ArrayList list = new ArrayList();
+        for (NeighborList<T> neighborList : currentRequest) {
+            NeighborList<T> nb = new NeighborList<T>(neighborList.getHeadVertex(), new HashSet<Vertex<T>>());
+            for (Vertex<T> v : neighborList.getListOfNeighbors()) {
+                if (map.get(neighborList.getHeadVertex()).getListOfNeighbors().contains(v)) {
+                    nb.getListOfNeighbors().add(v);
+
+                }
+            }
+            list.add(nb);
+        }
+        return list;
+    }
+
+    /*
+     * this method returns a modified array storing vertices and their
+     * dependencies
+     */
+    private ArrayList[] convertToNeighborList(HashMap<Vertex<T>, HashSet<Vertex<T>>> connections,
+            ArrayList[] toBeSent) {
+        ArrayList[] result = new ArrayList[PCJ.threadCount()];
+        for (int i = 0; i < toBeSent.length; i++) {
+            if (toBeSent[i] != null)
+                for (int j = 0; j < toBeSent[i].size(); j++) {
+                    Vertex<T> v = (Vertex<T>) toBeSent[i].get(j);
+                    if (result[i] == null) {
+                        result[i] = new ArrayList<NeighborList<T>>();
+                    }
+                    result[i].add(new NeighborList<T>(v, connections.get(v)));
+                }
+        }
+        return result;
+    }
+
+    private ArrayList<NeighborList<T>> getNeighbors(ArrayList<Vertex<T>> currentRequest, Network<T> graph) {
         ArrayList<NeighborList<T>> result = new ArrayList<NeighborList<T>>();
         for (Vertex<T> v : currentRequest) {
             result.add((graph.getGraph().get(v)));
@@ -255,12 +289,10 @@ public class Demon<T> {
         return result;
     }
 
-    private ArrayList<Integer> calculateDegrees(
-            ArrayList<Vertex<T>> currentRequest, Network<T> graph) {
+    private ArrayList<Integer> calculateDegrees(ArrayList<Vertex<T>> currentRequest, Network<T> graph) {
         ArrayList<Integer> result = new ArrayList<Integer>();
         for (Vertex<T> v : currentRequest) {
-            result.add(new Integer(graph.getGraph().get(v).getListOfNeighbors()
-                    .size()));
+            result.add(new Integer(graph.getGraph().get(v).getListOfNeighbors().size()));
         }
         return result;
     }
@@ -273,13 +305,12 @@ public class Demon<T> {
      * @param community2
      *            second community
      * @param mergeFactor
-     *            β is the threshold. If it is 1 we merge iff fully containment
+     *            Î² is the threshold. If it is 1 we merge iff fully containment
      *            is achieved. If it is 0 two communities are merged anyway.
-     * @return returns true if at least β fraction of the smaller community
+     * @return returns true if at least Î² fraction of the smaller community
      *         resides in their intersection.
      */
-    private boolean isMergible(Community<T> community1,
-            Community<T> community2, double mergeFactor) {
+    private boolean isMergible(Community<T> community1, Community<T> community2, double mergeFactor) {
         numberOfComparison++;
         if (community1 == null || community2 == null)
             return false;
@@ -333,10 +364,7 @@ public class Demon<T> {
                  * remove neighbors of current neighbor which are not included
                  * in neighborlist.
                  */
-                result.put(
-                        neighbor,
-                        intersection(network.getGraph().get(neighbor),
-                                neighborList));
+                result.put(neighbor, intersection(network.getGraph().get(neighbor), neighborList));
             } else {
 
                 NeighborList<T> nl = getRemoteNeighbors(neighbor);
@@ -367,11 +395,9 @@ public class Demon<T> {
         int thread = hashCode / arraySize;
         int localIndex = hashCode % (arraySize);
         int myId = PCJ.myId();
-        /* thread -1 çıkıyor bu nasıl iş? */
-        ArrayList<NeighborList<T>> entry = (ArrayList<NeighborList<T>>) (PCJ
-                .get(thread, "array", localIndex));
-        for (Iterator<NeighborList<T>> iterator = entry.iterator(); iterator
-                .hasNext();) {
+        /* thread -1 Ã§Ä±kÄ±yor bu nasÄ±l iÅŸ? */
+        ArrayList<NeighborList<T>> entry = (ArrayList<NeighborList<T>>) (PCJ.get(thread, "array", localIndex));
+        for (Iterator<NeighborList<T>> iterator = entry.iterator(); iterator.hasNext();) {
             NeighborList<T> neighborList = (NeighborList<T>) iterator.next();
             if (neighborList.getHeadVertex().equals(vertex)) {
                 return neighborList;
@@ -388,10 +414,8 @@ public class Demon<T> {
      * @param neighborList2
      * @return returns intersection of two sets as a new set
      */
-    private NeighborList<T> intersection(NeighborList<T> neighborList,
-            NeighborList<T> neighborList2) {
-        HashSet<Vertex<T>> intersection = new HashSet<Vertex<T>>(
-                neighborList.getListOfNeighbors());
+    private NeighborList<T> intersection(NeighborList<T> neighborList, NeighborList<T> neighborList2) {
+        HashSet<Vertex<T>> intersection = new HashSet<Vertex<T>>(neighborList.getListOfNeighbors());
         intersection.retainAll(neighborList2.getListOfNeighbors());
 
         double size1 = neighborList.getListOfNeighbors().size();
@@ -424,10 +448,10 @@ public class Demon<T> {
      * @param numberOfVertices
      * @throws IOException
      */
-    public void execute(Network<T> graph, double mergeFactor, int mergingType,
-            int numberOfVertices) throws IOException {
+    public void execute(Network<T> graph, double mergeFactor, int mergingType, int numberOfVertices)
+            throws IOException {
         constructBoundries(graph, numberOfVertices);
-        System.out.println("sağlam");
+        System.out.println("saÄŸlam");
         int count = 0;
         pool = new CommunityList<T>();
 
@@ -444,16 +468,14 @@ public class Demon<T> {
             CommunityList<T> localCommunities = lp.extractCommunities();
 
             /* merge each local communities found with global communities */
-            for (Community<T> localCommunity : localCommunities
-                    .getCommunities()) {
+            for (Community<T> localCommunity : localCommunities.getCommunities()) {
                 localCommunity.getMembers().add(vertex.getValue());
                 localCommunity.setIndex(count);
                 count++;
                 pool.getCommunities().add(localCommunity);
             }
         }
-        System.out.println("Number of communities found by LP is "
-                + pool.getCommunities().size());
+        System.out.println("Number of communities found by LP is " + pool.getCommunities().size());
         long startTime = System.nanoTime();
         Collections.sort(pool.getCommunities(), Collections.reverseOrder());
         int a = 0;
@@ -469,8 +491,7 @@ public class Demon<T> {
         double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
         System.out.println("Time: " + estimatedTime + " seconds");
         pool = cleanPool(pool);
-        System.out.println("Number of communities after merge is "
-                + pool.getCommunities().size());
+        System.out.println("Number of communities after merge is " + pool.getCommunities().size());
     }
 
     /**
@@ -528,14 +549,11 @@ public class Demon<T> {
         }
     }
 
-    private Community<T> merge(Community<T> mergerComm,
-            Community<T> mergedComm, boolean withDependencies) {
+    private Community<T> merge(Community<T> mergerComm, Community<T> mergedComm, boolean withDependencies) {
         // members
         int size1 = mergerComm.getMembers().size();
         int size2 = mergedComm.getMembers().size();
-        if (size1 > size2
-                || (size1 == size2 && mergerComm.getIndex() < mergedComm
-                        .getIndex())) {
+        if (size1 > size2 || (size1 == size2 && mergerComm.getIndex() < mergedComm.getIndex())) {
             mergerComm.getMembers().addAll(mergedComm.getMembers());
             if (withDependencies) {
                 mergerComm.getDependencyList().remove(mergedComm);
@@ -544,8 +562,7 @@ public class Demon<T> {
                     c.getDependencyList().add(mergerComm);
                     c.getDependencyList().remove(mergedComm);
                 }
-                mergerComm.getDependencyList().addAll(
-                        mergedComm.getDependencyList());
+                mergerComm.getDependencyList().addAll(mergedComm.getDependencyList());
             }
             pool.getCommunities().set(mergedComm.getIndex(), null);
             return mergerComm;
@@ -617,8 +634,7 @@ public class Demon<T> {
                 merged = false;
                 while (j < n) {
                     Community<T> mergedComm = pool.getCommunities().get(j);
-                    if (mergedComm != null
-                            && isMergible(mergerComm, mergedComm, mergeFactor)) {
+                    if (mergedComm != null && isMergible(mergerComm, mergedComm, mergeFactor)) {
                         mergerComm = merge(mergerComm, mergedComm, false);
                         merged = true;
                     }
