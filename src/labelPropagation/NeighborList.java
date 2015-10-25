@@ -15,8 +15,8 @@ public class NeighborList<T> implements Serializable {
 
     @Override
     public String toString() {
-        return "NeighborList [headVertex=" + headVertex + ", listOfNeighbors="
-                + listOfNeighbors + "]";
+        return "\nNeighborList [headVertex=" + headVertex + ", listOfNeighbors="
+                + listOfNeighbors + "]\n";
     }
 
     public Vertex<T> getHeadVertex() {

@@ -135,7 +135,7 @@ public class Demon<T> {
         for (int j = 0; j < PCJ.threadCount(); j++) {
             if (PCJ.myId() == j)
                 continue;
-            ArrayList<Vertex<T>> currentResponse = PCJ.get(j, "responseArray", PCJ.myId());
+            ArrayList<Integer> currentResponse = PCJ.get(j, "responseArray", PCJ.myId());
             if (currentResponse != null && currentResponse.size() != 0) {
                 computedDegrees[j] = currentResponse;
             }

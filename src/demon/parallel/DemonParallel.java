@@ -1,6 +1,8 @@
 package demon.parallel;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -39,6 +41,32 @@ public class DemonParallel extends Storage implements StartPoint {
         Indexer<Integer> indexer = new Indexer<Integer>();
 
         array = indexer.index(graphLoader.getNetwork());
+        
+        try {
+
+          
+
+            File file = new File("input-"+PCJ.myId()+".txt");
+
+            // if file doesnt exists, then create it
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+            for(ArrayList<NeighborList<Integer>> nb:array){
+                if(nb!=null)
+                bw.write(nb.toString());
+            }
+          
+            bw.close();
+
+            System.out.println("Done");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         int numberOfVertices = graphLoader.getNetwork().getGraph().size();
         Demon<Integer> demon = new Demon<Integer>(requestArray, responseArray, requests, responses);
