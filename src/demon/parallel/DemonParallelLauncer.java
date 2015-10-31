@@ -21,23 +21,25 @@ import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
-import demon.sequential.Demon;
+import demon.sequential.DemonParallel;
 
-public class DemonParallel extends Storage implements StartPoint {
+public class DemonParallelLauncer extends Storage implements StartPoint {
     @Shared
     ArrayList<NeighborList<Integer>>[] array;
     @Shared
     CommunityList<Integer> globalCommunities;
 
     @Shared
-    ArrayList[] requestArray, responseArray, requests, responses;
+    ArrayList[] requestArray, responseArray, requests, responses,sendReceiveRequest,sendReceiveResponse;
 
     public void main() throws IOException {
         requestArray = new ArrayList[PCJ.threadCount()];
         responseArray = new ArrayList[PCJ.threadCount()];
         requests = new ArrayList[PCJ.threadCount()];
         responses = new ArrayList[PCJ.threadCount()];
-        GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
+        sendReceiveRequest = new ArrayList[PCJ.threadCount()];
+        sendReceiveResponse = new ArrayList[PCJ.threadCount()];
+        GraphLoader graphLoader = new GraphLoader("testData.txt");
         Indexer<Integer> indexer = new Indexer<Integer>();
 
         array = indexer.index(graphLoader.getNetwork());
@@ -55,9 +57,10 @@ public class DemonParallel extends Storage implements StartPoint {
 
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
+            bw.write("Partition indexed by "+" thread "+PCJ.myId()+"..\n");
             for(ArrayList<NeighborList<Integer>> nb:array){
                 if(nb!=null)
-                bw.write(nb.toString());
+                bw.write(nb.toString()+"\n");
             }
           
             bw.close();
@@ -69,13 +72,13 @@ public class DemonParallel extends Storage implements StartPoint {
         }
 
         int numberOfVertices = graphLoader.getNetwork().getGraph().size();
-        Demon<Integer> demon = new Demon<Integer>(requestArray, responseArray, requests, responses);
+        DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,sendReceiveRequest,sendReceiveResponse);
         /*
          * change merge factor to see its effect. 1 mean s merge communities iff
          * bigger community fully contains smaller community
          */
         PCJ.barrier();
-        demon.execute(indexer.getLocalNetwork(), 0.5, 1, numberOfVertices);
+        demon.execute(indexer.getLocalNetwork(), 1, 1, numberOfVertices);
         globalCommunities = demon.getGlobalCommunities();
         int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
         for (int i = 0; i < numberOfIterations; i++) {
@@ -90,7 +93,7 @@ public class DemonParallel extends Storage implements StartPoint {
                     continue;
                 CommunityList<Integer> targetCommunities = PCJ.get(target, "globalCommunities");
                 globalCommunities.getCommunities().addAll(targetCommunities.getCommunities());
-                merge(0.6);
+                merge(1);
 
             }
         }
@@ -191,6 +194,6 @@ public class DemonParallel extends Storage implements StartPoint {
 
     public static void main(String[] args) {
         String[] nodes = new String[] { "localhost", "localhost" };
-        PCJ.deploy(DemonParallel.class, DemonParallel.class, nodes);
+        PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
     }
 }

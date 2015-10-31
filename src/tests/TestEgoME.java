@@ -8,14 +8,14 @@ import labelPropagation.Vertex;
 
 import org.junit.Test;
 
-import demon.sequential.Demon;
+import demon.sequential.DemonParallel;
 
 public class TestEgoME {
 
     @Test
     public void test() throws IOException {
         GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
-        Demon<Integer> demon = new Demon<Integer>();
+        DemonParallel<Integer> demon = new DemonParallel<Integer>();
         Network<Integer> network= graphLoader.getNetwork();
         for(Vertex<Integer> key: network.getGraph().keySet()){
             System.out.println(key);

@@ -1,5 +1,8 @@
 package demon.sequential;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,14 +21,15 @@ import labelPropagation.Network;
 import labelPropagation.Vertex;
 
 @SuppressWarnings("rawtypes")
-public class Demon<T> {
+public class DemonParallel<T> {
 
-    public ArrayList[] requestArray, responseArray;
+    public ArrayList[] requestArray, responseArray, sendReceiveRequest, sendReceiveResponse;
     private CommunityList<T> pool = null;
     private LabelPropagation<T> lp;
     private int numberOfComparison = 0;
     public ArrayList[] requests;
     public ArrayList[] responses;
+    private HashMap<Vertex<T>, NeighborList<T>> auxGraph;
 
     public int getNumberOfComparison() {
         return numberOfComparison;
@@ -39,20 +43,24 @@ public class Demon<T> {
         return pool;
     }
 
-    public Demon() {
+    public DemonParallel() {
 
         super();
         lp = new LabelPropagation<T>();
 
     }
 
-    public Demon(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests, ArrayList[] responses) {
+    public DemonParallel(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests,
+            ArrayList[] responses, ArrayList[] sendReceiveRequest, ArrayList[] sendReceiveResponse) {
         super();
         lp = new LabelPropagation<T>();
         this.requestArray = requestArray;
         this.responseArray = responseArray;
         this.requests = requests;
         this.responses = responses;
+        this.sendReceiveRequest = sendReceiveRequest;
+        this.sendReceiveResponse = sendReceiveResponse;
+        auxGraph = new HashMap<Vertex<T>, NeighborList<T>>();
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -179,16 +187,21 @@ public class Demon<T> {
          * neighborlistleri localine çeksin
          */
 
-        requestArray = toBeFetched;
+        int k = 0;
+        for (Object obj : toBeFetched) {
+
+            sendReceiveRequest[k] = (ArrayList<Vertex<T>>) obj;
+            k++;
+        }
         PCJ.barrier();
         for (int i1 = 0; i1 < PCJ.threadCount(); i1++) {
 
             if (PCJ.myId() == i1)
                 continue;
-            ArrayList<Vertex<T>> currentRequest = PCJ.get(i1, "requestArray", PCJ.myId());
+            ArrayList<Vertex<T>> currentRequest = PCJ.get(i1, "sendReceiveRequest", PCJ.myId());
             if (currentRequest != null && currentRequest.size() != 0) {
                 ArrayList<NeighborList<T>> neighbors = getNeighbors(currentRequest, graph);
-                responseArray[i1] = neighbors;
+                sendReceiveResponse[i1] = neighbors;
             }
         }
         PCJ.barrier();
@@ -201,7 +214,7 @@ public class Demon<T> {
         for (int j1 = 0; j1 < PCJ.threadCount(); j1++) {
             if (PCJ.myId() == j1)
                 continue;
-            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1, "responseArray", PCJ.myId());
+            ArrayList<NeighborList<T>> currentResponse = PCJ.get(j1, "sendReceiveResponse", PCJ.myId());
             if (currentResponse != null && currentResponse.size() != 0) {
                 remoteNeighborsFetched[j1] = currentResponse;
             }
@@ -240,7 +253,48 @@ public class Demon<T> {
                 remoteNeighborsSent[j1] = currentResponse;
             }
         }
+        /* keep all valuable information in auxiliary hash map */
 
+        for (ArrayList<NeighborList<T>> arrayList : remoteNeighborsFetched) {
+            if (arrayList != null)
+                for (NeighborList<T> nl : arrayList) {
+                    if (!auxGraph.containsKey(nl.getHeadVertex())) {
+                        auxGraph.put(nl.getHeadVertex(), nl);
+                        for (Vertex<T> v : nl.getListOfNeighbors()) {
+                            if (auxGraph.get(v) == null)
+                                auxGraph.put(v, new NeighborList<>(v, new HashSet<Vertex<T>>()));
+                            auxGraph.get(v).getListOfNeighbors().add(nl.getHeadVertex());
+                        }
+                    } else {
+                        auxGraph.get(nl.getHeadVertex()).getListOfNeighbors().addAll(nl.getListOfNeighbors());
+                        for (Vertex<T> v : nl.getListOfNeighbors()) {
+                            if (auxGraph.get(v) == null)
+                                auxGraph.put(v, new NeighborList<>(v, new HashSet<Vertex<T>>()));
+                            auxGraph.get(v).getListOfNeighbors().add(nl.getHeadVertex());
+                        }
+                    }
+                }
+        }
+        for (ArrayList<NeighborList<T>> arrayList : remoteNeighborsSent) {
+            if (arrayList != null)
+                for (NeighborList<T> nl : arrayList) {
+                    if (!auxGraph.containsKey(nl.getHeadVertex())) {
+                        auxGraph.put(nl.getHeadVertex(), nl);
+                        for (Vertex<T> v : nl.getListOfNeighbors()) {
+                            if (auxGraph.get(v) == null)
+                                auxGraph.put(v, new NeighborList<>(v, new HashSet<Vertex<T>>()));
+                            auxGraph.get(v).getListOfNeighbors().add(nl.getHeadVertex());
+                        }
+                    } else {
+                        auxGraph.get(nl.getHeadVertex()).getListOfNeighbors().addAll(nl.getListOfNeighbors());
+                        for (Vertex<T> v : nl.getListOfNeighbors()) {
+                            if (auxGraph.get(v) == null)
+                                auxGraph.put(v, new NeighborList<>(v, new HashSet<Vertex<T>>()));
+                            auxGraph.get(v).getListOfNeighbors().add(nl.getHeadVertex());
+                        }
+                    }
+                }
+        }
     }
 
     private ArrayList findEdges(ArrayList<NeighborList<T>> currentRequest, HashMap<Vertex<T>, NeighborList<T>> map) {
@@ -255,7 +309,9 @@ public class Demon<T> {
 
                 }
             }
-            list.add(nb);
+            /* hiç neighboru yoksa eklemeye gerek yok!! değişecek */
+            if (nb.getListOfNeighbors().size() != 0)
+                list.add(nb);
         }
         return list;
     }
@@ -364,16 +420,22 @@ public class Demon<T> {
                  * remove neighbors of current neighbor which are not included
                  * in neighborlist.
                  */
-                result.put(neighbor, intersection(network.getGraph().get(neighbor), neighborList));
+                NeighborList<T> ego = intersection(network.getGraph().get(neighbor), neighborList);
+                if (ego.getListOfNeighbors().size() != 0)
+                    result.put(neighbor, ego);
             } else {
 
                 NeighborList<T> nl = getRemoteNeighbors(neighbor);
-                System.out.println("tamam");
-                network.getGraph().put(nl.getHeadVertex(), nl);
-                result.put(neighbor, intersection(nl, neighborList));
+                
+                if (nl != null){
+                    NeighborList<T> ego = intersection(nl, neighborList);
+                    if (ego.getListOfNeighbors().size() != 0)
+                        result.put(neighbor, ego);
+                    }
 
             }
         }
+
         return new Network<T>(result);
     }
 
@@ -386,24 +448,8 @@ public class Demon<T> {
      */
     @SuppressWarnings("unchecked")
     private NeighborList<T> getRemoteNeighbors(Vertex<T> vertex) {
-
-        int numberOfThreads = PCJ.threadCount();
-        int size = GraphLoader.numberOfElements;
-        int arraySize = (size / numberOfThreads) + 1;
-
-        int hashCode = vertex.hashCode() % size;
-        int thread = hashCode / arraySize;
-        int localIndex = hashCode % (arraySize);
-        int myId = PCJ.myId();
-        /* thread -1 Ã§Ä±kÄ±yor bu nasÄ±l iÅŸ? */
-        ArrayList<NeighborList<T>> entry = (ArrayList<NeighborList<T>>) (PCJ.get(thread, "array", localIndex));
-        for (Iterator<NeighborList<T>> iterator = entry.iterator(); iterator.hasNext();) {
-            NeighborList<T> neighborList = (NeighborList<T>) iterator.next();
-            if (neighborList.getHeadVertex().equals(vertex)) {
-                return neighborList;
-            }
-        }
-        return null;
+        /* bu map çift yönlü değil yani 5->6 var ama 6->5 bilgisi yok */
+        return auxGraph.get(vertex);
     }
 
     /**
@@ -450,8 +496,16 @@ public class Demon<T> {
      */
     public void execute(Network<T> graph, double mergeFactor, int mergingType, int numberOfVertices)
             throws IOException {
+        File file = new File(PCJ.myId() + "_parallelEgo.txt");
+
+        // if file doesnt exists, then create it
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fw);
         constructBoundries(graph, numberOfVertices);
-        System.out.println("saÄŸlam");
         int count = 0;
         pool = new CommunityList<T>();
 
@@ -461,7 +515,9 @@ public class Demon<T> {
 
         for (Vertex<T> vertex : vertices) {
             Network<T> eMeN = egoMinusEgo(vertex, graph);
-
+            bw.write(vertex.toString() + "\n\n");
+            bw.write(eMeN.toString());
+            bw.write("\n\n\n\n");
             lp.initiliaze(eMeN.getGraph());
             lp.proceedLP();
             /* get local communities found by label propagation */
@@ -492,6 +548,7 @@ public class Demon<T> {
         System.out.println("Time: " + estimatedTime + " seconds");
         pool = cleanPool(pool);
         System.out.println("Number of communities after merge is " + pool.getCommunities().size());
+        bw.close();
     }
 
     /**

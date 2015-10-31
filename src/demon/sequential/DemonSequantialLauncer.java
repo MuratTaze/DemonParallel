@@ -12,34 +12,25 @@ import labelPropagation.Network;
 import labelPropagation.Vertex;
 
 
-public class DemonSequantial {
+public class DemonSequantialLauncer {
 
     public static void main(String[] args) throws IOException {
-        double epsilon = 0.0;
-        do {
+        double epsilon = 1;
+        runExperiment(epsilon);
+    /*    do {
             runExperiment(epsilon);
             epsilon = epsilon + 0.1;
-        } while (epsilon <= 1.0);
+        } while (epsilon <= 1.0);*/
     }
 
     private static void runExperiment(double epsilon) throws IOException {
         System.out.println();
         System.out.println();
         System.out.println("Epsilon="+epsilon);
-        GraphLoader graphLoader = new GraphLoader("traininGRaph.txt");
-        Demon<Integer> demon = new Demon<Integer>();
-        demon.execute(graphLoader.getNetwork(), epsilon, 0,graphLoader.getNetwork().getGraph().size());
-        PrintWriter writer = new PrintWriter(new File("QuadraticOutput.txt"));
-        writer.print(demon.getGlobalCommunities());
-        writer.flush();
-        writer.close();
-        System.out.println("Output is done for Quadratic method.");
-        System.out.println("Total number of comparison is "
-                + demon.getNumberOfComparison());
+        GraphLoader graphLoader = new GraphLoader("testData.txt");
+        DemonSerial<Integer> demon = new DemonSerial<Integer>();
+       
         demon.setNumberOfComparison(0);
-        averageConductance(graphLoader, demon);
-        System.out.println();
-        System.out.println();
         demon.execute(graphLoader.getNetwork(), epsilon, 1,graphLoader.getNetwork().getGraph().size());
 
         PrintWriter writer2 = new PrintWriter(new File("SubLinearOutput.txt"));
@@ -53,7 +44,7 @@ public class DemonSequantial {
     }
 
     private static void averageConductance(GraphLoader graphLoader,
-            Demon<Integer> demon) {
+            DemonSerial<Integer> demon) {
         double total_conductance = 0;
         for (int i = 0; i < demon.getGlobalCommunities().getCommunities()
                 .size(); i++) {

@@ -32,13 +32,10 @@ public class LabelPropagation<T> {
     public CommunityList<T> extractCommunities() {
         CommunityList<T> communities = new CommunityList<T>();
         for (Vertex<T> vertex : this.network.keySet()) {
-            if (communities
-                    .hasCommunity(this.communites.get(vertex.getValue()))) {
-                communities.addMember(vertex,
-                        this.communites.get(vertex.getValue()));
+            if (communities.hasCommunity(this.communites.get(vertex.getValue()))) {
+                communities.addMember(vertex, this.communites.get(vertex.getValue()));
             } else {
-                communities.createCommunity(vertex.getValue(),
-                        this.communites.get(vertex.getValue()));
+                communities.createCommunity(vertex.getValue(), this.communites.get(vertex.getValue()));
             }
         }
         return communities;
@@ -55,22 +52,20 @@ public class LabelPropagation<T> {
      *            neighbors of the vertex
      * @return label of the most frequent neighbor
      */
-    public T findMostCommonlyUsedId(Vertex<T> randomVertex,
-            NeighborList<T> neighborList) {
+    public T findMostCommonlyUsedId(Vertex<T> randomVertex, NeighborList<T> neighborList) {
 
         if (neighborList.getListOfNeighbors().size() != 0) {
             /* iterate over ego network and count community id's. */
-            HashMap<T, Integer> countList = new HashMap<T, Integer>(
-                    neighborList.getListOfNeighbors().size());
+            HashMap<T, Integer> countList = new HashMap<T, Integer>(neighborList.getListOfNeighbors().size());
             for (Vertex<T> node : neighborList.getListOfNeighbors()) {
-
+                if (communites.get(node.getValue()) == null)
+                    communites.put(node.getValue(), node.getValue());
                 if (countList.get(communites.get(node.getValue())) == null) {
                     countList.put(communites.get(node.getValue()), 1);
                 } else {/*
                          * increment that label 's occurrences .
                          */
-                    countList.put(communites.get(node.getValue()),
-                            countList.get(communites.get(node.getValue())) + 1);
+                    countList.put(communites.get(node.getValue()), countList.get(communites.get(node.getValue())) + 1);
                 }
             }
             /* ties are broken randomly */
@@ -114,8 +109,7 @@ public class LabelPropagation<T> {
          */
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
-            communites
-                    .put(entry.getKey().getValue(), entry.getKey().getValue());
+            communites.put(entry.getKey().getValue(), entry.getKey().getValue());
         }
 
         return true;
@@ -132,8 +126,7 @@ public class LabelPropagation<T> {
 
         for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
 
-            if (findMostCommonlyUsedId(entry.getKey(), entry.getValue()) == communites
-                    .get(entry.getKey().getValue())) {
+            if (findMostCommonlyUsedId(entry.getKey(), entry.getValue()) == communites.get(entry.getKey().getValue())) {
                 continue;/* do nothing */
             } else {
                 return false;
@@ -152,16 +145,12 @@ public class LabelPropagation<T> {
      * shuffling step and do the same things.
      */
     public void proceedLP() {
-        List<Vertex<T>> vertices = new ArrayList<Vertex<T>>(
-                this.network.keySet());
+        List<Vertex<T>> vertices = new ArrayList<Vertex<T>>(this.network.keySet());
 
         do {
             shuffle(vertices);
             for (Vertex<T> vertex : vertices) {
-                communites
-                        .put(vertex.getValue(),
-                                findMostCommonlyUsedId(vertex,
-                                        this.network.get(vertex)));
+                communites.put(vertex.getValue(), findMostCommonlyUsedId(vertex, this.network.get(vertex)));
             }
         } while (!isTerminated());
     }
