@@ -72,7 +72,7 @@ public class LabelPropagation<T> {
             int max = Collections.max(countList.values());
             if (max == 1) {
                 List<T> valuesList = new ArrayList<T>(countList.keySet());
-                int randomIndex = new Random().nextInt(valuesList.size());
+                int randomIndex = new Random(12345).nextInt(valuesList.size());
                 T randomValue = valuesList.get(randomIndex);
                 return randomValue;
             }
@@ -163,7 +163,7 @@ public class LabelPropagation<T> {
      *            list of vertices
      */
     private void shuffle(List<Vertex<T>> vertices) {
-        Random r = new Random();
+        Random r = new Random(12345);
         int i = vertices.size() - 1;
         while (i != 0) {
             int j = r.nextInt(i);

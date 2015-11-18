@@ -8,7 +8,7 @@ import labelPropagation.Vertex;
 
 import org.junit.Test;
 
-import demon.sequential.DemonParallel;
+import demon.parallel.DemonParallel;
 
 public class TestEgoME {
 

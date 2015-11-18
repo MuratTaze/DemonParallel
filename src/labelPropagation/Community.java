@@ -1,7 +1,8 @@
 package labelPropagation;
 
 import java.io.Serializable;
-import java.util.HashSet;
+
+import com.aliasi.util.CompactHashSet;
 
 
 
@@ -11,8 +12,8 @@ public class Community<T> implements Serializable, Comparable<Community<T>> {
      */
     private static final long serialVersionUID = 1L;
     private T communityId;
-    private HashSet<T> members;
-    private HashSet<Community<T>> dependencyList;
+    private CompactHashSet<T> members;
+    private CompactHashSet<Community<T>> dependencyList;
     private int index;
 
     public int getIndex() {
@@ -23,17 +24,17 @@ public class Community<T> implements Serializable, Comparable<Community<T>> {
         this.index = index;
     }
 
-    public HashSet<Community<T>> getDependencyList() {
+    public CompactHashSet<Community<T>> getDependencyList() {
         return dependencyList;
     }
 
-    public void setDependencyList(HashSet<Community<T>> dependencyList) {
+    public void setDependencyList(CompactHashSet<Community<T>> dependencyList) {
         this.dependencyList = dependencyList;
     }
 
     public Community() {
         super();
-        dependencyList = new HashSet<Community<T>>(100);
+        dependencyList = new CompactHashSet<Community<T>>(100);
 
     }
 
@@ -41,7 +42,7 @@ public class Community<T> implements Serializable, Comparable<Community<T>> {
         return communityId;
     }
 
-    public HashSet<T> getMembers() {
+    public CompactHashSet<T> getMembers() {
         return members;
     }
 
@@ -49,7 +50,7 @@ public class Community<T> implements Serializable, Comparable<Community<T>> {
         this.communityId = communityId;
     }
 
-    public void setMembers(HashSet<T> members) {
+    public void setMembers(CompactHashSet<T> members) {
         this.members = members;
     }
 

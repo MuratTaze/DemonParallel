@@ -3,8 +3,9 @@ package demon.sequential;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashSet;
 import java.util.Iterator;
+
+import com.aliasi.util.CompactHashSet;
 
 import labelPropagation.Community;
 import labelPropagation.GraphLoader;
@@ -27,7 +28,7 @@ public class DemonSequantialLauncer {
         System.out.println();
         System.out.println();
         System.out.println("Epsilon="+epsilon);
-        GraphLoader graphLoader = new GraphLoader("testData.txt");
+        GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
         DemonSerial<Integer> demon = new DemonSerial<Integer>();
        
         demon.setNumberOfComparison(0);
@@ -77,12 +78,12 @@ public class DemonSequantialLauncer {
     }
 
     private static double degree(
-            HashSet<Vertex<Integer>> HashSet,
-            HashSet<Integer> HashSet2) {
+            CompactHashSet<Vertex<Integer>> CompactHashSet,
+            CompactHashSet<Integer> CompactHashSet2) {
         double degree = 0;
-        Iterator<Integer> iter = HashSet2.iterator();
+        Iterator<Integer> iter = CompactHashSet2.iterator();
         while (iter.hasNext()) {
-            if (HashSet.contains(new Vertex<Integer>(iter.next()))) {
+            if (CompactHashSet.contains(new Vertex<Integer>(iter.next()))) {
                 degree++;
             }
         }
