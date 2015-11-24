@@ -1,8 +1,9 @@
 package labelPropagation;
 
 import java.io.Serializable;
+import java.util.HashSet;
 
-import com.aliasi.util.CompactHashSet;
+
 
 
 
@@ -12,7 +13,7 @@ public class NeighborList<T> implements Serializable {
      */
     private static final long serialVersionUID = 1L;
     private Vertex<T> headVertex;
-    private CompactHashSet<Vertex<T>> listOfNeighbors;
+    private HashSet<Vertex<T>> listOfNeighbors;
 
     @Override
     public String toString() {
@@ -28,15 +29,15 @@ public class NeighborList<T> implements Serializable {
         this.headVertex = headVertex;
     }
 
-    public CompactHashSet<Vertex<T>> getListOfNeighbors() {
+    public HashSet<Vertex<T>> getListOfNeighbors() {
         return listOfNeighbors;
     }
 
-    public void setListOfNeighbors(CompactHashSet<Vertex<T>> listOfNeighbors) {
+    public void setListOfNeighbors(HashSet<Vertex<T>> listOfNeighbors) {
         this.listOfNeighbors = listOfNeighbors;
     }
 
-    public NeighborList(Vertex<T> headVertex, CompactHashSet<Vertex<T>> listOfNeighbors) {
+    public NeighborList(Vertex<T> headVertex, HashSet<Vertex<T>> listOfNeighbors) {
         super();
         this.headVertex = headVertex;
         this.listOfNeighbors = listOfNeighbors;

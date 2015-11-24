@@ -6,17 +6,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 
-import com.aliasi.util.CompactHashSet;
+
 
 public class MyInputFormater {
-    private HashMap<String, CompactHashSet<String>> map;
+    private HashMap<String, HashSet<String>> map;
 
-    public HashMap<String, CompactHashSet<String>> getMap() {
+    public HashMap<String, HashSet<String>> getMap() {
         return map;
     }
 
-    public void setMap(HashMap<String, CompactHashSet<String>> map) {
+    public void setMap(HashMap<String, HashSet<String>> map) {
         this.map = map;
     }
 
@@ -24,7 +25,7 @@ public class MyInputFormater {
         super();
         // TODO Auto-generated constructor stub
 
-        map = new HashMap<String, CompactHashSet<String>>();/*
+        map = new HashMap<String, HashSet<String>>();/*
                                                       * network itself
                                                       */
 

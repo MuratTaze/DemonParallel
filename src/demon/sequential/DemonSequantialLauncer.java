@@ -3,9 +3,9 @@ package demon.sequential;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Iterator;
 
-import com.aliasi.util.CompactHashSet;
 
 import labelPropagation.Community;
 import labelPropagation.GraphLoader;
@@ -78,12 +78,12 @@ public class DemonSequantialLauncer {
     }
 
     private static double degree(
-            CompactHashSet<Vertex<Integer>> CompactHashSet,
-            CompactHashSet<Integer> CompactHashSet2) {
+            HashSet<Vertex<Integer>> HashSet,
+            HashSet<Integer> HashSet2) {
         double degree = 0;
-        Iterator<Integer> iter = CompactHashSet2.iterator();
+        Iterator<Integer> iter = HashSet2.iterator();
         while (iter.hasNext()) {
-            if (CompactHashSet.contains(new Vertex<Integer>(iter.next()))) {
+            if (HashSet.contains(new Vertex<Integer>(iter.next()))) {
                 degree++;
             }
         }

@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import labelPropagation.Community;
@@ -15,12 +16,13 @@ import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
 
+import org.pcj.FutureObject;
 import org.pcj.PCJ;
 import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
 
-import com.aliasi.util.CompactHashSet;
+
 
 public class DemonParallelLauncer extends Storage implements StartPoint {
 	@Shared
@@ -29,8 +31,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	CommunityList<Integer> globalCommunities;
 
 	@Shared
-	ArrayList[] requestArray, responseArray, requests, responses,
-			sendReceiveRequest, sendReceiveResponse;
+	ArrayList[] requestArray, responseArray, requests, responses, sendReceiveRequest, sendReceiveResponse;
 
 	public void main() throws IOException {
 		requestArray = new ArrayList[PCJ.threadCount()];
@@ -70,9 +71,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		}
 
 		int numberOfVertices = graphLoader.getNetwork().getGraph().size();
-		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray,
-				responseArray, requests, responses, sendReceiveRequest,
-				sendReceiveResponse);
+		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,
+				sendReceiveRequest, sendReceiveResponse);
 		/*
 		 * change merge factor to see its effect. 1 mean s merge communities iff
 		 * bigger community fully contains smaller community
@@ -81,25 +81,24 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		demon.execute(indexer.getLocalNetwork(), 1, 1, numberOfVertices);
 
 		globalCommunities = demon.getGlobalCommunities();
-		
-		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math
-				.log10(2));
+
+		System.err.println("From " + PCJ.myId() + " " + globalCommunities.getCommunities().size());
+		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
 		for (int i = 0; i < numberOfIterations; i++) {
 			/* wait for others to reach the same step */
 			PCJ.barrier();
 
 			/* determine who will merge with whom at this step */
 			if (myTurn(i)) {
-				System.out.println("merge!!!!!!!!!!!!!!!!!!!");
+
 				int target = PCJ.myId() + (int) Math.pow(2, i);
 				if (target >= PCJ.threadCount())
 					continue;
-				System.err.println("ÝÞ BÝTTÝÝÝÝÝ");
-				CommunityList<Integer> targetCommunities = PCJ.get(target,
-						"globalCommunities");
 
-				globalCommunities.getCommunities().addAll(
-						targetCommunities.getCommunities());
+				CommunityList<Integer> targetCommunities = PCJ.get(target, "globalCommunities");
+
+				System.out.println("merge!!!!!!!!!!!!!!!!!!! from " + PCJ.myId());
+				globalCommunities.getCommunities().addAll(targetCommunities.getCommunities());
 				merge(1);
 
 			}
@@ -109,34 +108,28 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 			double total_conductance = 0;
 			/* calculate conductance values */
 			for (int i = 0; i < globalCommunities.getCommunities().size(); i++) {
-				total_conductance += conductance(demon.getGlobalCommunities()
-						.getCommunities().get(i), graphLoader.getNetwork());
+				total_conductance += conductance(demon.getGlobalCommunities().getCommunities().get(i),
+						graphLoader.getNetwork());
 
 			}
-			average_conductance = total_conductance
-					/ globalCommunities.getCommunities().size();
-			System.out.println("Average conductance value is "
-					+ average_conductance);
-			PrintWriter writer = new PrintWriter(new File(
-					"ACM_Communities_Found.txt"));
+			average_conductance = total_conductance / globalCommunities.getCommunities().size();
+			System.out.println("Average conductance value is " + average_conductance);
+			PrintWriter writer = new PrintWriter(new File("ACM_Communities_Found.txt"));
 			writer.print(globalCommunities);
 			writer.flush();
 			writer.close();
 		}
 	}
 
-	private double conductance(Community<Integer> community,
-			Network<Integer> network) {
+	private double conductance(Community<Integer> community, Network<Integer> network) {
 		double in_degree = 0;
 		double out_degree = 0;
 		Iterator<Integer> iter = community.getMembers().iterator();
 		while (iter.hasNext()) {
 			Integer element = iter.next();
-			double current_degree = degree(
-					network.getGraph().get(new Vertex<Integer>(element))
-							.getListOfNeighbors(), community.getMembers());
-			out_degree += network.getGraph().get(new Vertex<Integer>(element))
-					.getListOfNeighbors().size()
+			double current_degree = degree(network.getGraph().get(new Vertex<Integer>(element)).getListOfNeighbors(),
+					community.getMembers());
+			out_degree += network.getGraph().get(new Vertex<Integer>(element)).getListOfNeighbors().size()
 					- current_degree;
 			in_degree += current_degree;
 		}
@@ -144,12 +137,11 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	}
 
-	private double degree(CompactHashSet<Vertex<Integer>> CompactHashSet,
-			CompactHashSet<Integer> CompactHashSet2) {
+	private double degree(HashSet<Vertex<Integer>> HashSet, HashSet<Integer> HashSet2) {
 		double degree = 0;
-		Iterator<Integer> iter = CompactHashSet2.iterator();
+		Iterator<Integer> iter = HashSet2.iterator();
 		while (iter.hasNext()) {
-			if (CompactHashSet.contains(new Vertex<Integer>(iter.next()))) {
+			if (HashSet.contains(new Vertex<Integer>(iter.next()))) {
 				degree++;
 			}
 		}
@@ -159,16 +151,11 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	private void merge(double mergeFactor) {
 		/* merge part - pooling approach */
 		for (int i = 0; i < globalCommunities.getCommunities().size() - 1; i++) {
-			System.err.println("dönüyoruz");
 			for (int j = i + 1; j < globalCommunities.getCommunities().size();) {
-				if (isMergible(globalCommunities.getCommunities().get(i),
-						globalCommunities.getCommunities().get(j), mergeFactor)) {
-					globalCommunities
-							.getCommunities()
-							.get(i)
-							.getMembers()
-							.addAll(globalCommunities.getCommunities().get(j)
-									.getMembers());
+				if (isMergible(globalCommunities.getCommunities().get(i), globalCommunities.getCommunities().get(j),
+						mergeFactor)) {
+					globalCommunities.getCommunities().get(i).getMembers()
+							.addAll(globalCommunities.getCommunities().get(j).getMembers());
 					globalCommunities.getCommunities().remove(j);
 					j = i + 1;
 				} else
@@ -177,8 +164,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		}
 	}
 
-	private boolean isMergible(Community<Integer> community1,
-			Community<Integer> community2, double mergeFactor) {
+	private boolean isMergible(Community<Integer> community1, Community<Integer> community2, double mergeFactor) {
 		if (community1 == null || community2 == null)
 			return false;
 		double intersection = 0;
@@ -214,7 +200,6 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	public static void main(String[] args) {
 		String[] nodes = new String[] { "localhost", "localhost" };
-		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
-				nodes);
+		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
 	}
 }
