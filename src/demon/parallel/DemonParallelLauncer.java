@@ -40,7 +40,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		responses = new ArrayList[PCJ.threadCount()];
 		sendReceiveRequest = new ArrayList[PCJ.threadCount()];
 		sendReceiveResponse = new ArrayList[PCJ.threadCount()];
-		GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
+		GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
 		Indexer<Integer> indexer = new Indexer<Integer>();
 
 		array = indexer.index(graphLoader.getNetwork());

@@ -28,7 +28,7 @@ public class DemonSequantialLauncer {
         System.out.println();
         System.out.println();
         System.out.println("Epsilon="+epsilon);
-        GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
+        GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
         DemonSerial<Integer> demon = new DemonSerial<Integer>();
        
         demon.setNumberOfComparison(0);
