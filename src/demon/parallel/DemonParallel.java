@@ -577,9 +577,12 @@ public class DemonParallel<T> {
 
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
+		double startTime=System.nanoTime();
+		
 		// degreeBasedRemoteAccess(graph, numberOfVertices);
 		// neigborlistBasedRemoteAccess(graph, numberOfVertices);
 		connectionBasedRemoteAccess(graph, numberOfVertices);
+		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		int count = 0;
 		pool = new CommunityList<T>();
 
@@ -607,8 +610,8 @@ public class DemonParallel<T> {
 				pool.getCommunities().add(localCommunity);
 			}
 		}
-		System.out.println("Number of communities found by LP is " + pool.getCommunities().size());
-		long startTime = System.nanoTime();
+		
+		//long startTime = System.nanoTime();
 		Collections.sort(pool.getCommunities(), Collections.reverseOrder());
 		int a = 0;
 		for (Community<T> c : pool.getCommunities()) {
@@ -620,10 +623,9 @@ public class DemonParallel<T> {
 		} else {
 			quadraticMerge(pool, mergeFactor);
 		}
-		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Time: " + estimatedTime + " seconds");
+		System.out.println("Time: " + estimatedTime + " seconds and Epsilon:"+mergeFactor);
 		pool = cleanPool(pool);
-		System.out.println("Number of communities after merge is " + pool.getCommunities().size());
+		//System.out.println("Number of communities after merge is " + pool.getCommunities().size());
 		bw.close();
 	}
 
@@ -637,7 +639,7 @@ public class DemonParallel<T> {
 	 * @param mergeFactor
 	 */
 	private void improvedGraphBasedMerge(double mergeFactor) {
-		System.out.println("Merging---> Started.");
+		//System.out.println("Merging---> Started.");
 		constructInvertedIndex();
 		int n = pool.getCommunities().size();
 		int[] temporaryPool = new int[n];
@@ -710,7 +712,7 @@ public class DemonParallel<T> {
 
 	private void graphBasedMerge(double mergeFactor) {
 		constructInvertedIndex();
-		System.out.println("Merging---> Started.");
+		//System.out.println("Merging---> Started.");
 
 		int n = pool.getCommunities().size();
 		int[] temporaryPool = new int[n];
@@ -814,7 +816,7 @@ public class DemonParallel<T> {
 
 		}
 
-		System.out.println("Inverted index-->done.");
+		//System.out.println("Inverted index-->done.");
 
 		/* dependency construction */
 		for (ArrayList<Community<T>> list : invertedIndex.values()) {
@@ -823,7 +825,7 @@ public class DemonParallel<T> {
 				list.get(i).getDependencyList().remove(list.get(i));
 			}
 		}
-		System.out.println("dependency construction--> done.");
+		//System.out.println("dependency construction--> done.");
 
 	}
 
