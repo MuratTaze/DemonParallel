@@ -27,12 +27,10 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	public void main() throws IOException {
 
-		/*double epsilon = 0;
-		do {
-			runExperiment(epsilon);
-			epsilon = epsilon + 0.1;
-		} while (epsilon <= 1.0);
-*/
+		/*
+		 * double epsilon = 0; do { runExperiment(epsilon); epsilon = epsilon +
+		 * 0.1; } while (epsilon <= 1.0);
+		 */
 		runExperiment(1);
 	}
 
@@ -45,10 +43,11 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		sendReceiveRequest = new ArrayList[PCJ.threadCount()];
 		sendReceiveResponse = new ArrayList[PCJ.threadCount()];
 		GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
+		int numberOfVertices = graphLoader.getNetwork().getGraph().size();
 		Indexer<Integer> indexer = new Indexer<Integer>();
 
 		array = indexer.index(graphLoader.getNetwork());
-
+		graphLoader = null;
 		try {
 
 			File file = new File("input-" + PCJ.myId() + ".txt");
@@ -71,7 +70,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 			e.printStackTrace();
 		}
 
-		int numberOfVertices = graphLoader.getNetwork().getGraph().size();
+
 		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,
 				sendReceiveRequest, sendReceiveResponse);
 		/*
@@ -87,7 +86,20 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	}
 
 	public static void main(String[] args) {
-		String[] nodes = new String[] { "localhost", "localhost" };
+		// String[] nodes = new String[] { "localhost", "localhost" };
+		String[] nodes = new String[] { "localhost", "localhost", "localhost", "localhost", "localhost", "localhost",
+				"localhost", "localhost" , "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
+		/*
+		 * *String[] nodes = new String[] { "localhost",
+		 * "localhost","localhost", "localhost","localhost",
+		 * "localhost","localhost", "localhost" }; String[] nodes = new String[]
+		 * { "localhost", "localhost","localhost", "localhost","localhost",
+		 * "localhost","localhost", "localhost","localhost",
+		 * "localhost","localhost", "localhost","localhost",
+		 * "localhost","localhost", "localhost" };
+		 * 
+		 * 
+		 */
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
 	}
 }
