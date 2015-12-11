@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 
 import org.pcj.PCJ;
 
+import labelPropagation.GraphLoader;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
@@ -23,9 +24,10 @@ public class Indexer<T> {
     }
 
     public ArrayList<NeighborList<T>>[] index(Network<T> network) {
+   
         int threadId = PCJ.myId();
         int numberOfThreads = PCJ.threadCount();
-        int numberOfVertices = network.getGraph().size();
+        int numberOfVertices = GraphLoader.numberOfElements;
         int arraySize = (numberOfVertices / numberOfThreads) +1;
         int firstIndex = threadId * arraySize;
         int lastIndex = firstIndex + arraySize - 1;
@@ -43,6 +45,10 @@ public class Indexer<T> {
                 
                 addElementToArray(entry.getValue(), array,
                        localIndex);
+            }
+            else{
+            	System.err.println("!!!OLAMAZ!!!");
+            	
             }
         }
         return array;

@@ -6,10 +6,9 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Iterator;
 
-
 import labelPropagation.Community;
-import labelPropagation.GraphLoader;
 import labelPropagation.Network;
+import labelPropagation.SerialGraphLoader;
 import labelPropagation.Vertex;
 
 
@@ -28,7 +27,7 @@ public class DemonSequantialLauncer {
         System.out.println();
         System.out.println();
         System.out.println("Epsilon="+epsilon);
-        GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
+        SerialGraphLoader graphLoader = new SerialGraphLoader("traininGraph.txt");
         DemonSerial<Integer> demon = new DemonSerial<Integer>();
        
         demon.setNumberOfComparison(0);
@@ -44,7 +43,7 @@ public class DemonSequantialLauncer {
         averageConductance(graphLoader, demon);
     }
 
-    private static void averageConductance(GraphLoader graphLoader,
+    private static void averageConductance(SerialGraphLoader graphLoader,
             DemonSerial<Integer> demon) {
         double total_conductance = 0;
         for (int i = 0; i < demon.getGlobalCommunities().getCommunities()

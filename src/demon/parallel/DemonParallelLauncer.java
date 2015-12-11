@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.pcj.PCJ;
@@ -23,7 +24,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	@SuppressWarnings("rawtypes")
 	@Shared
-	ArrayList[] requestArray, responseArray, requests, responses, sendReceiveRequest, sendReceiveResponse;
+	ArrayList[] requestArray, responseArray, requests, responses,
+			sendReceiveRequest, sendReceiveResponse;
 
 	public void main() throws IOException {
 
@@ -42,8 +44,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		responses = new ArrayList[PCJ.threadCount()];
 		sendReceiveRequest = new ArrayList[PCJ.threadCount()];
 		sendReceiveResponse = new ArrayList[PCJ.threadCount()];
-		GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
-		int numberOfVertices = graphLoader.getNetwork().getGraph().size();
+		GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
+		int numberOfVertices = GraphLoader.numberOfElements;
 		Indexer<Integer> indexer = new Indexer<Integer>();
 
 		array = indexer.index(graphLoader.getNetwork());
@@ -70,9 +72,9 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 			e.printStackTrace();
 		}
 
-
-		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,
-				sendReceiveRequest, sendReceiveResponse);
+		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray,
+				responseArray, requests, responses, sendReceiveRequest,
+				sendReceiveResponse);
 		/*
 		 * change merge factor to see its effect. 1 mean s merge communities iff
 		 * bigger community fully contains smaller community
@@ -81,14 +83,18 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		demon.execute(indexer.getLocalNetwork(), epsilon, 1, numberOfVertices);
 
 		globalCommunities = demon.getGlobalCommunities();
+		PrintWriter writer2 = new PrintWriter(new File(PCJ.myId()
+				+ "_ParallelOutput.txt"));
+		writer2.print(demon.getGlobalCommunities());
+		writer2.flush();
+		writer2.close();
 		// call performGlobalMerge() here
 
 	}
 
 	public static void main(String[] args) {
 		// String[] nodes = new String[] { "localhost", "localhost" };
-		String[] nodes = new String[] { "localhost", "localhost", "localhost", "localhost", "localhost", "localhost",
-				"localhost", "localhost" , "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost", "localhost"};
+		String[] nodes = new String[] {"localhost", "localhost"};
 		/*
 		 * *String[] nodes = new String[] { "localhost",
 		 * "localhost","localhost", "localhost","localhost",
@@ -97,9 +103,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		 * "localhost","localhost", "localhost","localhost",
 		 * "localhost","localhost", "localhost","localhost",
 		 * "localhost","localhost", "localhost" };
-		 * 
-		 * 
 		 */
-		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
+		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
+				nodes);
 	}
 }
