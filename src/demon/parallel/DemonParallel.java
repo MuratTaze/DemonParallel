@@ -575,8 +575,13 @@ public class DemonParallel<T> {
 					}
 				}
 
-				if (ego.getListOfNeighbors().size() != 0 && ego != null)
+				if (ego.getListOfNeighbors().size() != 0 && ego != null){
+					if(result.get(neighbor)==null)
 					result.put(neighbor, ego);
+					else
+						result.get(neighbor).getListOfNeighbors().addAll(ego.getListOfNeighbors());
+				}
+					
 			} else {
 
 				NeighborList<T> nl = new NeighborList<>(neighbor, connections.get(neighbor));
@@ -590,10 +595,13 @@ public class DemonParallel<T> {
 							result.get(v).getListOfNeighbors().add(ego.getHeadVertex());
 						}
 					}
-
-					if (ego.getListOfNeighbors().size() != 0 && ego != null)
+					if (ego.getListOfNeighbors().size() != 0 && ego != null){
+						if(result.get(neighbor)==null)
 						result.put(neighbor, ego);
-
+						else
+							result.get(neighbor).getListOfNeighbors().addAll(ego.getListOfNeighbors());
+					}
+					
 				}
 
 			}
@@ -657,9 +665,9 @@ public class DemonParallel<T> {
 		BufferedWriter bw = new BufferedWriter(fw);
 		double startTime = System.nanoTime();
 
-		 degreeBasedRemoteAccess(graph, numberOfVertices);
-		// neigborlistBasedRemoteAccess(graph, numberOfVertices);
-		//connectionBasedRemoteAccess(graph, numberOfVertices);
+		// degreeBasedRemoteAccess(graph, numberOfVertices);
+		 neigborlistBasedRemoteAccess(graph, numberOfVertices);
+	//	connectionBasedRemoteAccess(graph, numberOfVertices);
 
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		System.out.println("Total Time: " + estimatedTime + " seconds and Epsilon:" + mergeFactor);
