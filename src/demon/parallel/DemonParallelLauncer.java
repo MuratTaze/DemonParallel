@@ -95,15 +95,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	public static void main(String[] args) {
 		// String[] nodes = new String[] { "localhost", "localhost" };
 		String[] nodes = new String[] {"localhost", "localhost"};
-		/*
-		 * *String[] nodes = new String[] { "localhost",
-		 * "localhost","localhost", "localhost","localhost",
-		 * "localhost","localhost", "localhost" }; String[] nodes = new String[]
-		 * { "localhost", "localhost","localhost", "localhost","localhost",
-		 * "localhost","localhost", "localhost","localhost",
-		 * "localhost","localhost", "localhost","localhost",
-		 * "localhost","localhost", "localhost" };
-		 */
+		
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
 				nodes);
 	}
