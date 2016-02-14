@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import org.pcj.PCJ;
+
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
 import labelPropagation.GraphLoader;
@@ -29,6 +30,8 @@ public class DemonParallel<T> {
 	public ArrayList[] requests;
 	public ArrayList[] responses;
 	HashMap<Vertex<T>, HashSet<Vertex<T>>> connections;
+	public RequestPacket[] packetRequest;
+	public ResponsePacket[] packetResponse;
 
 	public int getNumberOfComparison() {
 		return numberOfComparison;
@@ -50,7 +53,8 @@ public class DemonParallel<T> {
 	}
 
 	public DemonParallel(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests,
-			ArrayList[] responses, ArrayList[] sendReceiveRequest, ArrayList[] sendReceiveResponse) {
+			ArrayList[] responses, ArrayList[] sendReceiveRequest, ArrayList[] sendReceiveResponse,
+			RequestPacket[] packetRequest, ResponsePacket[] packetResponse) {
 		super();
 		lp = new LabelPropagation<T>();
 		this.requestArray = requestArray;
@@ -59,7 +63,8 @@ public class DemonParallel<T> {
 		this.responses = responses;
 		this.sendReceiveRequest = sendReceiveRequest;
 		this.sendReceiveResponse = sendReceiveResponse;
-
+		this.packetRequest = packetRequest;
+		this.packetResponse = packetResponse;
 	}
 
 	/**
@@ -187,31 +192,31 @@ public class DemonParallel<T> {
 		return computedDegrees;
 	}
 
-	private void categorizeBoundries(ArrayList[] toBeSent, ArrayList[] toBeFetched, ArrayList[] computedDegrees) {
+	private void categorizeBoundries(RequestPacket[] requestPackets, ArrayList[] computedDegrees) {
 		int i = 0;
 		int j = 0;
-		int sent = 0, fetched = 0;
+
 		for (ArrayList<Vertex<T>> l : requestArray) {
 			if (l != null) {
 				j = 0;
 				for (Vertex<T> v : l) {
 					/* bu liste neighborlarý getirilecekleri tutuyor */
 					if (connections.get(v).size() > ((Integer) (computedDegrees[i].get(j)))) {
-						if (toBeFetched[i] == null) {
-							toBeFetched[i] = new ArrayList<Vertex<T>>();
+						if (requestPackets[i] == null) {
+							requestPackets[i] = new RequestPacket<T>();
 						}
-						toBeFetched[i].add(v);
-						fetched++;
+						requestPackets[i].getNeighborlistQuery().add(v);
+
 					} else {
 						/*
 						 * bu liste connecitoionslarý tutuyor connections
 						 * arraylist yokki!!!
 						 */
-						if (toBeSent[i] == null) {
-							toBeSent[i] = new ArrayList<Vertex<T>>();
+						if (requestPackets[i] == null) {
+							requestPackets[i] = new RequestPacket<T>();
 						}
-						toBeSent[i].add(v);
-						sent++;
+						requestPackets[i].getConnectionListQuery().add(new NeighborList<>(v, connections.get(v)));
+
 					}
 					j = j + 1;
 				}
@@ -442,31 +447,80 @@ public class DemonParallel<T> {
 		// seconds");
 
 		/* compare degrees with the list of each key */
-		ArrayList[] toBeSent = new ArrayList[PCJ.threadCount()];
-		ArrayList[] toBeFetched = new ArrayList[PCJ.threadCount()];
-
+		RequestPacket[] requestPackets = new RequestPacket[PCJ.threadCount()];
+		ResponsePacket[] responsePackets = new ResponsePacket[PCJ.threadCount()];
 		startTime = System.nanoTime();
-		categorizeBoundries(toBeSent, toBeFetched, computedDegrees);
+		categorizeBoundries(requestPackets, computedDegrees);
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 
-		startTime = System.nanoTime();
-		ArrayList[] remoteNeighborsFetched = getNeighborlistsWithDegree(graph, toBeFetched);
-		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		// System.out.println("Time for getting neighborlists: " + estimatedTime
-		// + " seconds");
+		performComm(requestPackets, responsePackets, map);
 
-		startTime = System.nanoTime();
-		ArrayList[] remoteNeighborsSent = getConnectionsForDegreeBased(toBeSent, map);
-		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		// System.out.println("Time for asking connections: " + estimatedTime +
-		// " seconds");
-
+		
+		
 		map = null;
 		startTime = System.nanoTime();
 		/* keep all valuable information in auxiliary hash map */
-		fillAuxGraph(remoteNeighborsFetched, remoteNeighborsSent);
+		for(ResponsePacket packet:responsePackets)
+		fillAuxGraph(packet);
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 
+	}
+
+	private void fillAuxGraph(ResponsePacket packet) {
+		if(packet!=null)
+		{
+			for(NeighborList<T> nl :(ArrayList<NeighborList<T>>)packet.getConnections()){
+				connections.get(nl.getHeadVertex()).retainAll(nl.getListOfNeighbors());
+			}
+			for(NeighborList<T> nl :(ArrayList<NeighborList<T>>)packet.getNeighborLists()){
+				connections.get(nl.getHeadVertex()).retainAll(nl.getListOfNeighbors());
+			}
+		}
+	}
+
+	private void performComm(RequestPacket[] requestPackets, ResponsePacket[] responsePackets,
+			HashMap<Vertex<T>, NeighborList<T>> map) {
+		int i = 0;
+		for (Object obj : requestPackets) {
+
+			packetRequest[i] = (RequestPacket) obj;
+			i++;
+		}
+
+		PCJ.barrier();
+		for (int i1 = 0; i1 < PCJ.threadCount(); i1++) {
+
+			if (PCJ.myId() == i1)
+				continue;
+			RequestPacket currentRequest = PCJ.get(i1, "packetRequest", PCJ.myId());
+			if (currentRequest != null) {
+				packetResponse[i1] = processPacket(currentRequest, map);
+			}
+		}
+		PCJ.barrier();
+		for (int j1 = 0; j1 < PCJ.threadCount(); j1++) {
+			if (PCJ.myId() == j1)
+				continue;
+			ResponsePacket currentResponse = PCJ.get(j1, "packetResponse", PCJ.myId());
+			responsePackets[j1] = currentResponse;
+
+		}
+	}
+
+	private ResponsePacket processPacket(RequestPacket currentRequest, HashMap<Vertex<T>, NeighborList<T>> map) {
+		/*
+		 * first prepare neighbor lists for the requested vertices second check
+		 * the connections lastly return response object
+		 */
+		ResponsePacket response = new ResponsePacket<T>();
+		for (Object obj : currentRequest.getNeighborlistQuery()) {
+			Vertex<T> v = (Vertex<T>) obj;
+			response.getNeighborLists().add(map.get(v));
+
+		}
+
+		response.setConnections(findEdges(currentRequest.getConnectionListQuery(), map));
+		return response;
 	}
 
 	private ArrayList<NeighborList> findEdges(ArrayList<NeighborList<T>> currentRequest,
@@ -697,9 +751,9 @@ public class DemonParallel<T> {
 
 		double startTime = System.nanoTime();
 
-	//	degreeBasedRemoteAccess(graph, numberOfVertices);
-	  //neigborlistBasedRemoteAccess(graph, numberOfVertices);
-			connectionBasedRemoteAccess(graph, numberOfVertices);
+		// degreeBasedRemoteAccess(graph, numberOfVertices);
+		// neigborlistBasedRemoteAccess(graph, numberOfVertices);
+		connectionBasedRemoteAccess(graph, numberOfVertices);
 
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		if (PCJ.myId() == 0)
