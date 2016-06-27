@@ -455,24 +455,21 @@ public class DemonParallel<T> {
 
 		performComm(requestPackets, responsePackets, map);
 
-		
-		
 		map = null;
 		startTime = System.nanoTime();
 		/* keep all valuable information in auxiliary hash map */
-		for(ResponsePacket packet:responsePackets)
-		fillAuxGraph(packet);
+		for (ResponsePacket packet : responsePackets)
+			fillAuxGraph(packet);
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 
 	}
 
 	private void fillAuxGraph(ResponsePacket packet) {
-		if(packet!=null)
-		{
-			for(NeighborList<T> nl :(ArrayList<NeighborList<T>>)packet.getConnections()){
+		if (packet != null) {
+			for (NeighborList<T> nl : (ArrayList<NeighborList<T>>) packet.getConnections()) {
 				connections.get(nl.getHeadVertex()).retainAll(nl.getListOfNeighbors());
 			}
-			for(NeighborList<T> nl :(ArrayList<NeighborList<T>>)packet.getNeighborLists()){
+			for (NeighborList<T> nl : (ArrayList<NeighborList<T>>) packet.getNeighborLists()) {
 				connections.get(nl.getHeadVertex()).retainAll(nl.getListOfNeighbors());
 			}
 		}
@@ -779,9 +776,9 @@ public class DemonParallel<T> {
 			Network<T> eMeN = egoMinusEgo(vertex, graph);
 			if (eMeN.getGraph().size() == 0)
 				continue;
-			bw.write(vertex.toString() + "\n\n");
+			bw.write("Ego Network for " + vertex.toString());
 			bw.write(eMeN.toString());
-			bw.write("\n\n\n\n");
+			bw.write("\n");
 			lp.initiliaze(eMeN.getGraph());
 			lp.proceedLP();
 			CommunityList<T> localCommunities = lp.extractCommunities();
@@ -794,7 +791,7 @@ public class DemonParallel<T> {
 				pool.getCommunities().add(localCommunity);
 			}
 		}
-
+		bw.close();
 		// long startTime = System.nanoTime();
 		Collections.sort(pool.getCommunities(), Collections.reverseOrder());
 		int a = 0;
@@ -811,7 +808,6 @@ public class DemonParallel<T> {
 		pool = cleanPool(pool);
 		// System.out.println("Number of communities after merge is " +
 		// pool.getCommunities().size());
-		bw.close();
 
 	}
 

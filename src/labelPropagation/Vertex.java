@@ -48,7 +48,7 @@ public class Vertex<T> implements Serializable{
 
     @Override
     public String toString() {
-        return "Vertex [value=" + value +  "]";
+        return value.toString();
     }
 
 }

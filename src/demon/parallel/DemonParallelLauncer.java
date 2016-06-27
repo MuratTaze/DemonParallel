@@ -48,7 +48,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		sendReceiveResponse = new ArrayList[PCJ.threadCount()];
 		packetRequest = new RequestPacket[PCJ.threadCount()];
 		packetResponse=new ResponsePacket[PCJ.threadCount()];
-		GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
+		GraphLoader graphLoader = new GraphLoader("p2p-Gnutella31.txt");
 		int numberOfVertices = GraphLoader.numberOfElements;
 		Indexer<Integer> indexer = new Indexer<Integer>();
 
@@ -96,7 +96,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	public static void main(String[] args) {
 
-		String[] nodes = new String[] {"localhost", "localhost","localhost", "localhost","localhost", "localhost","localhost", "localhost" };
+		String[] nodes = new String[] {"localhost", "localhost" };
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
 
 	}

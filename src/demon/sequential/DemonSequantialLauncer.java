@@ -27,7 +27,7 @@ public class DemonSequantialLauncer {
         System.out.println();
         System.out.println();
         System.out.println("Epsilon="+epsilon);
-        SerialGraphLoader graphLoader = new SerialGraphLoader("traininGraph.txt");
+        SerialGraphLoader graphLoader = new SerialGraphLoader("p2p-Gnutella31.txt");
         DemonSerial<Integer> demon = new DemonSerial<Integer>();
        
         demon.setNumberOfComparison(0);
