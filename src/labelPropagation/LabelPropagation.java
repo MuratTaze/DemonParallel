@@ -3,13 +3,14 @@ package labelPropagation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 
 public class LabelPropagation<T> {
     private HashMap<T, T> communites = new HashMap<T, T>();
-    private HashMap<Vertex<T>, NeighborList<T>> network;/*
+    private HashMap<T, HashSet<T>> network;/*
                                                          * due to speed issues
                                                          */
 
@@ -17,9 +18,9 @@ public class LabelPropagation<T> {
         super();
     }
 
-    public LabelPropagation(Network<T> network) {
+    public LabelPropagation(HashMap<T, HashSet<T>> network) {
         super();
-        this.network = network.getGraph();
+        this.network = network;
         initiliaze(this.network);
     }
 
@@ -31,11 +32,11 @@ public class LabelPropagation<T> {
      */
     public CommunityList<T> extractCommunities() {
         CommunityList<T> communities = new CommunityList<T>();
-        for (Vertex<T> vertex : this.network.keySet()) {
-            if (communities.hasCommunity(this.communites.get(vertex.getValue()))) {
-                communities.addMember(vertex, this.communites.get(vertex.getValue()));
+        for (T vertex : this.network.keySet()) {
+            if (communities.hasCommunity(this.communites.get(vertex))) {
+                communities.addMember(vertex, this.communites.get(vertex));
             } else {
-                communities.createCommunity(vertex.getValue(), this.communites.get(vertex.getValue()));
+                communities.createCommunity(vertex, this.communites.get(vertex));
             }
         }
         return communities;
@@ -46,33 +47,33 @@ public class LabelPropagation<T> {
      * For a given vertex and its neighbors, this method finds label of the most
      * frequent neighbor.
      * 
-     * @param randomVertex
+     * @param t
      *            vertex chosen randomly from the network
-     * @param neighborList
+     * @param hashSet
      *            neighbors of the vertex
      * @return label of the most frequent neighbor
      */
-    public T findMostCommonlyUsedId(Vertex<T> randomVertex, NeighborList<T> neighborList) {
+    public T findMostCommonlyUsedId(T t, HashSet<T> hashSet) {
 
-        if (neighborList.getListOfNeighbors().size() != 0) {
+        if (hashSet.size() != 0) {
             /* iterate over ego network and count community id's. */
-            HashMap<T, Integer> countList = new HashMap<T, Integer>(neighborList.getListOfNeighbors().size());
-            for (Vertex<T> node : neighborList.getListOfNeighbors()) {
-                if (communites.get(node.getValue()) == null)
-                    communites.put(node.getValue(), node.getValue());
-                if (countList.get(communites.get(node.getValue())) == null) {
-                    countList.put(communites.get(node.getValue()), 1);
+            HashMap<T, Integer> countList = new HashMap<T, Integer>(hashSet.size());
+            for (T node : hashSet) {
+                if (communites.get(node) == null)
+                    communites.put(node, node);
+                if (countList.get(communites.get(node)) == null) {
+                    countList.put(communites.get(node), 1);
                 } else {/*
                          * increment that label 's occurrences .
                          */
-                    countList.put(communites.get(node.getValue()), countList.get(communites.get(node.getValue())) + 1);
+                    countList.put(communites.get(node), countList.get(communites.get(node)) + 1);
                 }
             }
             /* ties are broken randomly */
             int max = Collections.max(countList.values());
             if (max == 1) {
                 List<T> valuesList = new ArrayList<T>(countList.keySet());
-                int randomIndex = new Random(12345).nextInt(valuesList.size());
+                int randomIndex = new Random().nextInt(valuesList.size());
                 T randomValue = valuesList.get(randomIndex);
                 return randomValue;
             }
@@ -84,10 +85,10 @@ public class LabelPropagation<T> {
                 }
             }
         }
-        return communites.get(randomVertex.getValue());
+        return communites.get(t);
     }
 
-    public HashMap<Vertex<T>, NeighborList<T>> getNetwork() {
+    public HashMap<T, HashSet<T>> getNetwork() {
         return network;
     }
 
@@ -99,7 +100,7 @@ public class LabelPropagation<T> {
      *            graph
      * @return returns false if the network is null.
      */
-    public boolean initiliaze(HashMap<Vertex<T>, NeighborList<T>> network) {
+    public boolean initiliaze(HashMap<T, HashSet<T>> network) {
         if (network == null)
             return false;
         this.network = network;
@@ -108,8 +109,8 @@ public class LabelPropagation<T> {
          * initially all nodes belong to themselves as community.
          */
 
-        for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
-            communites.put(entry.getKey().getValue(), entry.getKey().getValue());
+        for (Entry<T, HashSet<T>> entry : this.network.entrySet()) {
+            communites.put(entry.getKey(), entry.getKey());
         }
 
         return true;
@@ -124,9 +125,9 @@ public class LabelPropagation<T> {
      */
     public boolean isTerminated() {
 
-        for (Entry<Vertex<T>, NeighborList<T>> entry : this.network.entrySet()) {
+        for (Entry<T, HashSet<T>> entry : this.network.entrySet()) {
 
-            if (findMostCommonlyUsedId(entry.getKey(), entry.getValue()) == communites.get(entry.getKey().getValue())) {
+            if (findMostCommonlyUsedId(entry.getKey(), entry.getValue()) == communites.get(entry.getKey())) {
                 continue;/* do nothing */
             } else {
                 return false;
@@ -145,12 +146,12 @@ public class LabelPropagation<T> {
      * shuffling step and do the same things.
      */
     public void proceedLP() {
-        List<Vertex<T>> vertices = new ArrayList<Vertex<T>>(this.network.keySet());
+        List<T> vertices = new ArrayList<T>(this.network.keySet());
 
         do {
-            shuffle(vertices);
-            for (Vertex<T> vertex : vertices) {
-                communites.put(vertex.getValue(), findMostCommonlyUsedId(vertex, this.network.get(vertex)));
+            shuffle(vertices); 
+            for (T vertex : vertices) {
+                communites.put(vertex, findMostCommonlyUsedId(vertex, this.network.get(vertex)));
             }
         } while (!isTerminated());
     }
@@ -162,19 +163,19 @@ public class LabelPropagation<T> {
      * @param vertices
      *            list of vertices
      */
-    private void shuffle(List<Vertex<T>> vertices) {
-        Random r = new Random(12345);
+    private void shuffle(List<T> vertices) {
+        Random r = new Random();
         int i = vertices.size() - 1;
         while (i != 0) {
             int j = r.nextInt(i);
-            Vertex<T> temp = vertices.get(j);
+            T temp = vertices.get(j);
             vertices.set(j, vertices.get(i));
             vertices.set(i, temp);
             i--;
         }
     }
 
-    public void setNetwork(HashMap<Vertex<T>, NeighborList<T>> network) {
+    public void setNetwork(HashMap<T, HashSet<T>> network) {
         this.network = network;
     }
 }

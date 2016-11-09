@@ -21,10 +21,10 @@ public class CommunityList<T> implements Serializable {
         communities = new ArrayList<Community<T>>();
     }
 
-    public void addMember(Vertex<T> member,T label) {
+    public void addMember(T vertex,T label) {
         for (Community<T> community : communities) {
             if (label.equals(community.getCommunityId()))
-                community.getMembers().add(member.getValue());
+                community.getMembers().add(vertex);
         }
     }
 

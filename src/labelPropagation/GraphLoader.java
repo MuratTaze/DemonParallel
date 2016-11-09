@@ -1,123 +1,88 @@
 package labelPropagation;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
-
-import org.pcj.PCJ;
 
 public class GraphLoader {
 	/* vertices and neighbor lists */
-	private HashMap<Vertex<Integer>, NeighborList<Integer>> map;
-	private Set<Integer> vertices;
+	private HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> map;
 	public static int numberOfElements;
+	private HashMap<Integer, Vertex<Integer>> vertexExistenceTable;
 
 	/* loads data to a hash map */
 	public GraphLoader(String filename) throws IOException {
 		super();
-		// TODO Auto-generated constructor stub
-		vertices = new HashSet<Integer>();
-		initialize(filename);
-		System.err.println(vertices.size());
-		map = new HashMap<Vertex<Integer>, NeighborList<Integer>>();/*
-																	 * network
-																	 * itself
-																	 */
+
+		map = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>();/*
+																		 * network
+																		 * itself
+																		 */
+		vertexExistenceTable = new HashMap<Integer, Vertex<Integer>>();
 		FileReader inputFile = new FileReader(filename);
-		// Instantiate the BufferedReader Class
 		BufferedReader bufferReader = new BufferedReader(inputFile);
-		int numberOfThreads = PCJ.threadCount();
-		int arraySize = (numberOfElements / numberOfThreads) + 1;
 		String line;
 
-		// Read file line by line and add them to hashmap
+		// Read file line by line and add them to hash map
 		while ((line = bufferReader.readLine()) != null) {
 			String[] values = line.split(" ");
 			Integer arg1, arg2;
 			arg1 = new Integer(values[0]);
 			arg2 = new Integer(values[1]);
+			Vertex<Integer> v1 = null, v2 = null;
 
-			int hashCode1 = arg1 % numberOfElements;
-			int index1 = hashCode1 / arraySize;
-			int hashCode2 = arg2 % numberOfElements;
-			int index2 = hashCode2 / arraySize;
+			if (vertexExistenceTable.containsKey(arg1)) {
+				v1 = vertexExistenceTable.get(arg1);
+			} else {
+				v1 = new Vertex<Integer>();
+				v1.setValue(arg1);
+				vertexExistenceTable.put(arg1, v1);
+			}
+			if (vertexExistenceTable.containsKey(arg2)) {
+				v2 = vertexExistenceTable.get(arg2);
+			} else {
+				v2 = new Vertex<Integer>();
+				v2.setValue(arg2);
+				vertexExistenceTable.put(arg2, v2);
+			}
 
-			Vertex<Integer> v1, v2;
-
-			v1 = new Vertex<Integer>();
-
-			v1.setValue(arg1);
-
-			v2 = new Vertex<Integer>();
-
-			v2.setValue(arg2);
-			if (index1 == PCJ.myId()) {
+			{
 				if (map.get(v1) == null) {
 
-					NeighborList<Integer> neighborList = new NeighborList<Integer>(
-							v1, new HashSet<Vertex<Integer>>());
-					neighborList.getListOfNeighbors().add(v2);
+					HashSet<Vertex<Integer>> neighborList = new HashSet<Vertex<Integer>>();
+					neighborList.add(v2);
 					map.put(v1, neighborList);
 
 				} else {
-					map.get(v1).getListOfNeighbors().add(v2);
-
+					map.get(v1).add(v2);
 				}
-				
+
 			}
-			if (index2 == PCJ.myId()) {
+			{
 				if (map.get(v2) == null) {
 
-					NeighborList<Integer> neighborList = new NeighborList<Integer>(
-							v2, new HashSet<Vertex<Integer>>());
-					neighborList.getListOfNeighbors().add(v1);
+					HashSet<Vertex<Integer>> neighborList = new HashSet<Vertex<Integer>>();
+					neighborList.add(v1);
 					map.put(v2, neighborList);
 
 				} else {
-					map.get(v2).getListOfNeighbors().add(v1);
+					map.get(v2).add(v1);
 
 				}
 			}
 		}
-
+		numberOfElements = map.size();
 		bufferReader.close();
 
 	}
 
-	private void initialize(String filename) throws NumberFormatException,
-			IOException {
-		// Create object of FileReader
-		FileReader inputFile = new FileReader(filename);
-
-		// Instantiate the BufferedReader Class
-		BufferedReader bufferReader = new BufferedReader(inputFile);
-
-		String line;
-
-		// Read file line by line and add them to hashset
-		while ((line = bufferReader.readLine()) != null) {
-			String[] values = line.split(" ");
-			Integer arg1, arg2;
-			arg1 = new Integer(values[0]);
-			arg2 = new Integer(values[1]);
-			vertices.add(arg1);
-			vertices.add(arg2);
-		}
-		bufferReader.close();
-		numberOfElements = vertices.size();
-
+	public HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> getGraph() {
+		return this.map;
 	}
 
-	public Network<Integer> getNetwork() {
-		return new Network<Integer>(this.map);
-	}
-
-	public void setMap(HashMap<Vertex<Integer>, NeighborList<Integer>> map) {
+	public void setMap(HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> map) {
 		this.map = map;
 	}
 }

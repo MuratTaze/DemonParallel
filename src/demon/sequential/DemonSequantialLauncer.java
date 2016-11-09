@@ -13,14 +13,14 @@ import labelPropagation.Vertex;
 
 
 public class DemonSequantialLauncer {
-
+/*
     public static void main(String[] args) throws IOException {
         double epsilon = 1;
         runExperiment(epsilon);
-    /*    do {
+        do {
             runExperiment(epsilon);
             epsilon = epsilon + 0.1;
-        } while (epsilon <= 1.0);*/
+        } while (epsilon <= 1.0);
     }
 
     private static void runExperiment(double epsilon) throws IOException {
@@ -88,5 +88,5 @@ public class DemonSequantialLauncer {
         }
         return degree;
     }
-
+*/
 }
