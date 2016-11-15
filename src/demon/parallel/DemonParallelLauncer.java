@@ -54,7 +54,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	@SuppressWarnings("unchecked")
 	private void runExperiment(double epsilon) throws IOException {
 		// TODO Auto-generated method stub
-
+		double startTime = System.nanoTime();
 		requestArray = new ArrayList[PCJ.threadCount()];
 		responseArray = new ArrayList[PCJ.threadCount()];
 		requests = new ArrayList[PCJ.threadCount()];
@@ -66,9 +66,9 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 		/* master thread partitions the graph */
 		if (PCJ.myId() == 0) {
-			GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
+			GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
-			partitions = partitioner.randomPartitioning();
+			partitions = partitioner.bfsPartitioning();
 		}
 		PCJ.barrier();
 
@@ -84,24 +84,25 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		}
 		PCJ.barrier();
 		partitions = null;
-		
+
 		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray,
 				responseArray, requests, responses, sendReceiveRequest,
 				sendReceiveResponse, packetRequest, packetResponse);
 
 		demon.execute(partition, epsilon, 1);
 		globalCommunities = demon.getGlobalCommunities();
-
+		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
+		System.out.println("Total Time:" + estimatedTime);
 		// System.out.println(globalCommunities.getCommunities());
 		// call performGlobalMerge() here
 
 	}
 
 	public static void main(String[] args) {
-		//String[] nodes = new String[] { "localhost","localhost" ,"localhost","localhost" };
+		String[] nodes = new String[] { "localhost","localhost","localhost","localhost","localhost","localhost"};
 
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
-				"nodes.txt");
+				nodes);
 
 	}
 }

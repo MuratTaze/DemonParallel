@@ -561,7 +561,7 @@ public class DemonParallel<T> {
 		 * gönderdiðin sýrayla(toBeSent) gelen sýra ayný oradan bak ekle map'a
 		 */
 		for (int i = 0; i < PCJ.threadCount(); i++) {
-			if (i != PCJ.myId())
+			if (i != PCJ.myId()&&requestPackets[i]!=null)
 				compare(requestPackets[i].getConnectionListQuery(), responsePackets[i].getConnections());
 		}
 
