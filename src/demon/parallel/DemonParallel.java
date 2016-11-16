@@ -783,8 +783,8 @@ public class DemonParallel<T> {
 		}
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		// if (PCJ.myId() == 0)
-		System.out.println("Total Time for EGO + Label Propagation: " + " Thread:" + PCJ.myId() + "  " + estimatedTime
-				+ " seconds");
+		System.out.println("EGO + Label Propagation: " + " Thread:" + PCJ.myId() + "  " + estimatedTime
+				+ " seconds"+ vertexList.length+" vertices.");
 
 		// long startTime = System.nanoTime();
 		startTime = System.nanoTime();

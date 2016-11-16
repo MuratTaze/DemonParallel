@@ -147,13 +147,15 @@ public class LabelPropagation<T> {
      */
     public void proceedLP() {
         List<T> vertices = new ArrayList<T>(this.network.keySet());
-
-        do {
+ 
+        int maxIterationNumber=5;
+		do {
             shuffle(vertices); 
             for (T vertex : vertices) {
                 communites.put(vertex, findMostCommonlyUsedId(vertex, this.network.get(vertex)));
             }
-        } while (!isTerminated());
+            maxIterationNumber++;
+        } while (maxIterationNumber<5);//while(!isTerminted())
     }
 
     /**

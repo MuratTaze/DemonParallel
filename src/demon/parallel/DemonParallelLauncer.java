@@ -66,9 +66,12 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 		/* master thread partitions the graph */
 		if (PCJ.myId() == 0) {
+			double starttime1=System.nanoTime();
 			GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
-			partitions = partitioner.bfsPartitioning();
+			partitions = partitioner.randomPartitioning();
+			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
+			System.out.println("Total Partitioning Time:" + estimatedTime1);
 		}
 		PCJ.barrier();
 
@@ -82,6 +85,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		} else {
 			partition = partitions[0];
 		}
+		
 		PCJ.barrier();
 		partitions = null;
 
@@ -92,14 +96,14 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		demon.execute(partition, epsilon, 1);
 		globalCommunities = demon.getGlobalCommunities();
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time:" + estimatedTime);
+		System.out.println("Total Time Thread:" +PCJ.myId()+"   "+ estimatedTime);
 		// System.out.println(globalCommunities.getCommunities());
 		// call performGlobalMerge() here
 
 	}
 
 	public static void main(String[] args) {
-		String[] nodes = new String[] { "localhost","localhost","localhost","localhost","localhost","localhost"};
+	String[] nodes = new String[] { "localhost","localhost"};
 
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
 				nodes);

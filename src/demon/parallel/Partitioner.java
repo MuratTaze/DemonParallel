@@ -109,7 +109,7 @@ public class Partitioner {
 			entry = it.next();
 		}
 		// Adds to end of queue
-		Vertex<Integer> startingVertex = covered(lookup);
+		Vertex<Integer> startingVertex = mostPopularVertex();
 
 		while (startingVertex != null) {
 			applyBFS(startingVertex, queue, lookup, partitionList);// start from
@@ -156,6 +156,18 @@ public class Partitioner {
 
 		return partitions;
 
+	}
+
+	private Vertex<Integer> mostPopularVertex() {
+		int highestDegreee=0;
+		Vertex<Integer> popularVertex = null;
+		for(Vertex<Integer> v:graph.keySet()){
+			if(graph.get(v).size()>highestDegreee){
+				highestDegreee=graph.get(v).size();
+				popularVertex=v;
+			}
+		}
+		return popularVertex;
 	}
 
 	// starting vertex yani root en baþta nasýl seçiliyor?
