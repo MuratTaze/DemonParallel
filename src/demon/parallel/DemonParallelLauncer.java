@@ -97,7 +97,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		globalCommunities = demon.getGlobalCommunities();
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		System.out.println("Total Time Thread:" +PCJ.myId()+"   "+ estimatedTime);
-		// System.out.println(globalCommunities.getCommunities());
+		//System.out.println(globalCommunities.getCommunities());
 		// call performGlobalMerge() here
 
 	}

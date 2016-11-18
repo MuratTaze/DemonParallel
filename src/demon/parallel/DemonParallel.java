@@ -15,6 +15,7 @@ import org.pcj.PCJ;
 
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
+import labelPropagation.FastLabelPropagation;
 import labelPropagation.GraphLoader;
 import labelPropagation.LabelPropagation;
 import labelPropagation.NeighborList;
@@ -27,6 +28,7 @@ public class DemonParallel<T> {
 	public ArrayList[] requestArray, responseArray, sendReceiveRequest, sendReceiveResponse;
 	private CommunityList<Integer> pool = null;
 	private LabelPropagation<Integer> lp;
+	private FastLabelPropagation<Integer> flp;
 	private int numberOfComparison = 0;
 	public ArrayList[] requests;
 	public ArrayList[] responses;
@@ -52,7 +54,7 @@ public class DemonParallel<T> {
 
 		super();
 		lp = new LabelPropagation<Integer>();
-
+		flp=new FastLabelPropagation<Integer>();
 	}
 
 	public DemonParallel(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests,
@@ -60,6 +62,7 @@ public class DemonParallel<T> {
 			RequestPacket[] packetRequest, ResponsePacket[] packetResponse) {
 		super();
 		lp = new LabelPropagation<Integer>();
+		flp=new FastLabelPropagation<Integer>();
 		this.requestArray = requestArray;
 		this.responseArray = responseArray;
 		this.requests = requests;
@@ -193,7 +196,7 @@ public class DemonParallel<T> {
 			if (l != null) {
 				j = 0;
 				for (Integer v : l) {
-					/* bu liste neighborlarý getirilecekleri tutuyor */
+					/* bu liste neighborlarÃ½ getirilecekleri tutuyor */
 					vtx.setValue(v);
 					if (connections.get(vtx).size() > ((Integer) (computedDegrees[i].get(j)))) {
 						if (requestPackets[i] == null) {
@@ -203,13 +206,13 @@ public class DemonParallel<T> {
 
 					} else {
 						/*
-						 * bu liste connecitoionslarý tutuyor connections
+						 * bu liste connecitoionslarÃ½ tutuyor connections
 						 * arraylist yokki!!!
 						 */
 						if (requestPackets[i] == null) {
 							requestPackets[i] = new RequestPacket<Integer>();
 						}
-						/* burada connectionlar� al s�rayla integer */
+						/* burada connectionlarý al sýrayla integer */
 
 						vtx.setValue(v);
 						requestPackets[i].getConnectionListQuery().add(v);
@@ -390,7 +393,7 @@ public class DemonParallel<T> {
 					tail = true;
 
 				}
-				// buras� acil d�zenlenecek
+				// burasý acil düzenlenecek
 				if (value == null) {
 					tempValue = new HashSet<Integer>();
 					head = true;
@@ -454,10 +457,10 @@ public class DemonParallel<T> {
 		}
 
 		/*
-		 * g�nderdi�in s�rayla(toBeSent) gelen s�ra ayn� oradan bak ekle map'a
+		 * gönderdiðin sýrayla(toBeSent) gelen sýra ayný oradan bak ekle map'a
 		 */
 		for (int i = 0; i < PCJ.threadCount(); i++) {
-			if (i != PCJ.myId())
+			if (i != PCJ.myId()&&toBeSent[i]!=null)
 				compare(toBeSent[i], remoteNeighborsFetched[i]);
 		}
 
@@ -558,7 +561,7 @@ public class DemonParallel<T> {
 			keepCommonBoundry();
 
 		/*
-		 * g�nderdi�in s�rayla(toBeSent) gelen s�ra ayn� oradan bak ekle map'a
+		 * gönderdiðin sýrayla(toBeSent) gelen sýra ayný oradan bak ekle map'a
 		 */
 		for (int i = 0; i < PCJ.threadCount(); i++) {
 			if (i != PCJ.myId()&&requestPackets[i]!=null)
@@ -655,10 +658,10 @@ public class DemonParallel<T> {
 	 * @param community2
 	 *            second community
 	 * @param mergeFactor
-	 *            �?² is the threshold. If it is 1 we merge iff fully
+	 *            ï¿½?Â² is the threshold. If it is 1 we merge iff fully
 	 *            containment is achieved. If it is 0 two communities are merged
 	 *            anyway.
-	 * @return returns true if at least �?² fraction of the smaller community
+	 * @return returns true if at least ï¿½?Â² fraction of the smaller community
 	 *         resides in their intersection.
 	 */
 	private boolean isMergible(Community<Integer> community1, Community<Integer> community2, double mergeFactor) {
@@ -747,9 +750,9 @@ public class DemonParallel<T> {
 
 		System.out.println("Thread:" + PCJ.myId() + " " + partition.size());
 		double startTime = System.nanoTime();
-	 degreeBasedRemoteAccess(partition);
+	// degreeBasedRemoteAccess(partition);
 		//neigborlistBasedRemoteAccess(partition);
-			// connectionBasedRemoteAccess(partition);
+			 connectionBasedRemoteAccess(partition);
 		partition = null;
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		// if (PCJ.myId() == 0)
@@ -769,9 +772,9 @@ public class DemonParallel<T> {
 			if (egoNetwork.size() == 0)
 				continue;
 
-			lp.initiliaze(egoNetwork);
-			lp.proceedLP();
-			CommunityList<Integer> localCommunities = lp.extractCommunities();
+			flp.initiliaze(egoNetwork);
+			flp.proceedLP();
+			CommunityList<Integer> localCommunities = flp.extractCommunities();
 
 			// merge each local communities found with global communities
 			for (Community<Integer> localCommunity : localCommunities.getCommunities()) {
