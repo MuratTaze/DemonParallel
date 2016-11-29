@@ -4,17 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
-
-import org.pcj.PCJ;
 
 import labelPropagation.GraphLoader;
 import labelPropagation.Vertex;
+
+import org.pcj.PCJ;
 
 public class Partitioner {
 	HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> graph;
@@ -27,7 +25,7 @@ public class Partitioner {
 		this.graph = graph;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public HashMap[] randomPartitioning() {
 		HashMap[] partitions = new HashMap[PCJ.threadCount()];
 
@@ -71,19 +69,6 @@ public class Partitioner {
 			}
 		}
 		return partitions;
-		/**
-		 * for (Iterator<Entry<Vertex<Integer>, HashSet<Vertex<Integer>>>> it =
-		 * graph .entrySet().iterator(); it.hasNext();) { Entry<Vertex<Integer>,
-		 * HashSet<Vertex<Integer>>> entry = it.next();
-		 * 
-		 * for(HashSet<Vertex<Integer>> neighbors:graph.values()){
-		 * for(Vertex<Integer> v:neighbors){ v.setThreadNumber(graph.); } }
-		 * 
-		 * if (entry.getKey().equals("test")) {
-		 * 
-		 * it.remove(); } }
-		 **/
-
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -102,12 +87,6 @@ public class Partitioner {
 			lookup.put(v, false);
 		}
 
-		Iterator<Entry<Vertex<Integer>, HashSet<Vertex<Integer>>>> it = graph
-				.entrySet().iterator();
-		Entry<Vertex<Integer>, HashSet<Vertex<Integer>>> entry = null;
-		if (it.hasNext()) {
-			entry = it.next();
-		}
 		// Adds to end of queue
 		Vertex<Integer> startingVertex = mostPopularVertex();
 
@@ -158,13 +137,88 @@ public class Partitioner {
 
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public HashMap[] degreeBalancedBfsPartitioning() {
+
+		// Since queue is a interface
+		Queue<Vertex<Integer>> queue = new LinkedList<Vertex<Integer>>();
+
+		ArrayList<Vertex<Integer>> partitionList = new ArrayList<Vertex<Integer>>();
+
+		HashMap<Vertex<Integer>, Boolean> lookup = new HashMap<Vertex<Integer>, Boolean>();// visited
+		int totalDegree = 0; // or
+		// not?
+
+		for (Vertex<Integer> v : graph.keySet()) {
+			lookup.put(v, false);
+			totalDegree += graph.get(v).size();
+		}
+		int averageDegree = totalDegree / PCJ.threadCount();
+
+		// Adds to end of queue
+		Vertex<Integer> startingVertex = mostPopularVertex();
+
+		while (startingVertex != null) {
+			applyBFS(startingVertex, queue, lookup, partitionList);// start from
+																	// a given
+																	// vertex
+																	// apply
+																	// breadth
+																	// first
+																	// search
+			startingVertex = covered(lookup);
+		}
+		HashMap[] partitions = new HashMap[PCJ.threadCount()];
+
+		/* create empty partitions */
+		int capacity = GraphLoader.numberOfElements / PCJ.threadCount();
+		int remaining = GraphLoader.numberOfElements % PCJ.threadCount();
+		for (int i = 0; i < PCJ.threadCount() - 1; i++) {
+
+			partitions[i] = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>(
+					capacity);
+
+		}
+		partitions[PCJ.threadCount() - 1] = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>(
+				capacity + remaining);
+		
+		int thread = 0;
+		int threadDegree=0;
+		int vertexDegree=0;
+		for (Vertex<Integer> vrtx : partitionList) {
+
+			vertexDegree=graph.get(vrtx).size();
+			threadDegree+=vertexDegree;
+			
+			vrtx.setThreadNumber(thread);
+
+			
+
+			partitions[thread].put(vrtx, graph.get(vrtx));
+			if (threadDegree>=averageDegree) {
+				threadDegree=0;	
+				if ((PCJ.threadCount() - 1) == thread) {
+					;
+				}
+
+				else{
+					thread++;
+				
+				}
+			}
+		}
+
+		return partitions;
+
+	}
+
 	private Vertex<Integer> mostPopularVertex() {
-		int highestDegreee=0;
+		int highestDegreee = 0;
 		Vertex<Integer> popularVertex = null;
-		for(Vertex<Integer> v:graph.keySet()){
-			if(graph.get(v).size()>highestDegreee){
-				highestDegreee=graph.get(v).size();
-				popularVertex=v;
+		for (Vertex<Integer> v : graph.keySet()) {
+			if (graph.get(v).size() > highestDegreee) {
+				highestDegreee = graph.get(v).size();
+				popularVertex = v;
 			}
 		}
 		return popularVertex;
