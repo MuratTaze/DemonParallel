@@ -1,24 +1,19 @@
 package demon.parallel;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import labelPropagation.CommunityList;
+import labelPropagation.GraphLoader;
+import labelPropagation.NeighborList;
+import labelPropagation.Vertex;
 
 import org.pcj.PCJ;
 import org.pcj.Shared;
 import org.pcj.StartPoint;
 import org.pcj.Storage;
-
-import labelPropagation.CommunityList;
-import labelPropagation.GraphLoader;
-import labelPropagation.LabelPropagation;
-import labelPropagation.NeighborList;
-import labelPropagation.Vertex;
 
 public class DemonParallelLauncer extends Storage implements StartPoint {
 	@Shared
@@ -37,6 +32,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	@Shared
 	ResponsePacket[] packetResponse;
 
+	@SuppressWarnings("rawtypes")
 	@Shared
 	HashMap[] partitions;
 
@@ -66,10 +62,13 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 		/* master thread partitions the graph */
 		if (PCJ.myId() == 0) {
-			double starttime1=System.nanoTime();
-			GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
+			double starttime1 = System.nanoTime();
+			GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
-			partitions = partitioner.randomPartitioning();
+			/*partitions = partitioner.metisPartitioning(
+				"FormattedTraining.txt.part",
+					graphLoader.getVertexExistenceTable());*/
+			partitions=partitioner.degreeBalancedBfsPartitioning();
 			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
 			System.out.println("Total Partitioning Time:" + estimatedTime1);
 		}
@@ -85,7 +84,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		} else {
 			partition = partitions[0];
 		}
-		
+
 		PCJ.barrier();
 		partitions = null;
 
@@ -96,14 +95,15 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		demon.execute(partition, epsilon, 1);
 		globalCommunities = demon.getGlobalCommunities();
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time Thread:" +PCJ.myId()+"   "+ estimatedTime);
-		//System.out.println(globalCommunities.getCommunities());
+		System.out.println("Total Time Thread:" + PCJ.myId() + "   "
+				+ estimatedTime);
+		// System.out.println(globalCommunities.getCommunities());
 		// call performGlobalMerge() here
 
 	}
 
 	public static void main(String[] args) {
-	String[] nodes = new String[] { "localhost","localhost"};
+		String[] nodes = new String[] { "localhost", "localhost", "localhost", "localhost" };
 
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
 				nodes);

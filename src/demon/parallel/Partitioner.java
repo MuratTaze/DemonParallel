@@ -1,6 +1,10 @@
 package demon.parallel;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -181,29 +185,27 @@ public class Partitioner {
 		}
 		partitions[PCJ.threadCount() - 1] = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>(
 				capacity + remaining);
-		
+
 		int thread = 0;
-		int threadDegree=0;
-		int vertexDegree=0;
+		int threadDegree = 0;
+		int vertexDegree = 0;
 		for (Vertex<Integer> vrtx : partitionList) {
 
-			vertexDegree=graph.get(vrtx).size();
-			threadDegree+=vertexDegree;
-			
+			vertexDegree = graph.get(vrtx).size();
+			threadDegree += vertexDegree;
+
 			vrtx.setThreadNumber(thread);
 
-			
-
 			partitions[thread].put(vrtx, graph.get(vrtx));
-			if (threadDegree>=averageDegree) {
-				threadDegree=0;	
+			if (threadDegree >= averageDegree) {
+				threadDegree = 0;
 				if ((PCJ.threadCount() - 1) == thread) {
 					;
 				}
 
-				else{
+				else {
 					thread++;
-				
+
 				}
 			}
 		}
@@ -257,6 +259,49 @@ public class Partitioner {
 			}
 		}
 
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public HashMap[] metisPartitioning(String filename,
+			HashMap<Integer, Vertex<Integer>> vertexExistenceTable)
+			throws NumberFormatException, IOException {
+		HashMap[] partitions = new HashMap[PCJ.threadCount()];
+
+		/* create empty partitions */
+		int capacity = GraphLoader.numberOfElements / PCJ.threadCount();
+		int remaining = GraphLoader.numberOfElements % PCJ.threadCount();
+		for (int i = 0; i < PCJ.threadCount() - 1; i++) {
+
+			partitions[i] = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>(
+					capacity);
+
+		}
+		partitions[PCJ.threadCount() - 1] = new HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>>(
+				capacity + remaining);
+
+		Integer[] vertexList = new Integer[graph.size()];
+		int abc = 0;
+		for (Vertex<Integer> vertex : graph.keySet()) {
+			vertexList[abc] = vertex.getValue();
+			abc++;
+		}
+
+		Arrays.sort(vertexList);
+
+		int thread;
+		FileReader inputFile = new FileReader(filename);
+		BufferedReader bufferReader = new BufferedReader(inputFile);
+
+		for (Integer key : vertexList) {
+			thread = Integer.parseInt(bufferReader.readLine());
+			vertexExistenceTable.get(key).setThreadNumber(thread);
+
+			partitions[thread].put(vertexExistenceTable.get(key),
+					graph.get(vertexExistenceTable.get(key)));
+
+		}
+		bufferReader.close();
+		return partitions;
 	}
 
 }

@@ -10,6 +10,7 @@ public class GraphLoader {
 	/* vertices and neighbor lists */
 	private HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> map;
 	public static int numberOfElements;
+	public static int edgeCount = 0;
 	private HashMap<Integer, Vertex<Integer>> vertexExistenceTable;
 
 	/* loads data to a hash map */
@@ -27,6 +28,7 @@ public class GraphLoader {
 
 		// Read file line by line and add them to hash map
 		while ((line = bufferReader.readLine()) != null) {
+			
 			String[] values = line.split(" ");
 			Integer arg1, arg2;
 			arg1 = new Integer(values[0]);
@@ -52,11 +54,11 @@ public class GraphLoader {
 				if (map.get(v1) == null) {
 
 					HashSet<Vertex<Integer>> neighborList = new HashSet<Vertex<Integer>>();
-					neighborList.add(v2);
+					neighborList.add(v2);edgeCount++;
 					map.put(v1, neighborList);
 
 				} else {
-					map.get(v1).add(v2);
+					map.get(v1).add(v2);edgeCount++;
 				}
 
 			}
@@ -64,11 +66,11 @@ public class GraphLoader {
 				if (map.get(v2) == null) {
 
 					HashSet<Vertex<Integer>> neighborList = new HashSet<Vertex<Integer>>();
-					neighborList.add(v1);
+					neighborList.add(v1);edgeCount++;
 					map.put(v2, neighborList);
 
 				} else {
-					map.get(v2).add(v1);
+					map.get(v2).add(v1);edgeCount++;
 
 				}
 			}
@@ -78,6 +80,16 @@ public class GraphLoader {
 
 	}
 
+	public HashMap<Integer, Vertex<Integer>> getVertexExistenceTable() {
+		return vertexExistenceTable;
+	}
+
+	public void setVertexExistenceTable(
+			HashMap<Integer, Vertex<Integer>> vertexExistenceTable) {
+		this.vertexExistenceTable = vertexExistenceTable;
+	}
+
+	
 	public HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> getGraph() {
 		return this.map;
 	}
