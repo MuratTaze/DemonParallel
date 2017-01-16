@@ -8,8 +8,8 @@ import java.util.Iterator;
 
 import labelPropagation.Community;
 import labelPropagation.Network;
-import labelPropagation.SerialGraphLoader;
 import labelPropagation.Vertex;
+import utils.SerialGraphLoader;
 
 
 public class DemonSequantialLauncer {

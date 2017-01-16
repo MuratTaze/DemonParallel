@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import labelPropagation.GraphLoader;
 import labelPropagation.Vertex;
+import utils.GraphLoader;
 
 import org.pcj.PCJ;
 

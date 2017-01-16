@@ -6,10 +6,10 @@ import java.util.Map.Entry;
 
 import org.pcj.PCJ;
 
-import labelPropagation.GraphLoader;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
+import utils.GraphLoader;
 
 public class Indexer<T> {
     private Network<T> localNetwork = null;

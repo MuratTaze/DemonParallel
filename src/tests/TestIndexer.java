@@ -3,8 +3,8 @@ package tests;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import labelPropagation.GraphLoader;
 import labelPropagation.NeighborList;
+import utils.GraphLoader;
 
 import org.junit.Test;
 

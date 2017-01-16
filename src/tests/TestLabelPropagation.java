@@ -2,8 +2,8 @@ package tests;
 
 import java.io.IOException;
 
-import labelPropagation.GraphLoader;
 import labelPropagation.LabelPropagation;
+import utils.GraphLoader;
 
 import org.junit.Test;
 

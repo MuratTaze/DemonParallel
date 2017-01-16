@@ -1,10 +1,14 @@
-package labelPropagation;
+package utils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import labelPropagation.NeighborList;
+import labelPropagation.Network;
+import labelPropagation.Vertex;
 
 
 

@@ -1,4 +1,4 @@
-package demon.parallel;
+package utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +8,9 @@ import java.util.Iterator;
 
 import org.pcj.PCJ;
 
+import demon.parallel.DemonParallel;
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
-import labelPropagation.GraphLoader;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
 

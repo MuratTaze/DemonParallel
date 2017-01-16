@@ -1,4 +1,4 @@
-package formatter;
+package utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import labelPropagation.GraphLoader;
 import labelPropagation.Vertex;
 
 public class MetisTransformer {

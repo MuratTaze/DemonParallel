@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import labelPropagation.CommunityList;
-import labelPropagation.GraphLoader;
 import labelPropagation.NeighborList;
 import labelPropagation.Vertex;
+import utils.GraphLoader;
 
 import org.pcj.PCJ;
 import org.pcj.Shared;

@@ -16,11 +16,11 @@ import org.pcj.PCJ;
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
 import labelPropagation.FastLabelPropagation;
-import labelPropagation.GraphLoader;
 import labelPropagation.LabelPropagation;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
+import utils.GraphLoader;
 
 @SuppressWarnings("rawtypes")
 public class DemonParallel<T> {

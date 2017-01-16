@@ -2,8 +2,8 @@ package tests;
 
 import java.io.IOException;
 
-import formatter.MetisTransformer;
-import labelPropagation.GraphLoader;
+import utils.GraphLoader;
+import utils.MetisTransformer;
 
 public class TestMetisTransformer {
 
