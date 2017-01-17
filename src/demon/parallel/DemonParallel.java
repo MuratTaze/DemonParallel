@@ -1,8 +1,5 @@
 package demon.parallel;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +17,14 @@ import labelPropagation.LabelPropagation;
 import labelPropagation.NeighborList;
 import labelPropagation.Network;
 import labelPropagation.Vertex;
-import utils.GraphLoader;
+import utils.CommunityMerger;
 
 @SuppressWarnings("rawtypes")
 public class DemonParallel<T> {
 
 	public ArrayList[] requestArray, responseArray, sendReceiveRequest, sendReceiveResponse;
 	private CommunityList<Integer> pool = null;
+	@SuppressWarnings("unused")
 	private LabelPropagation<Integer> lp;
 	private FastLabelPropagation<Integer> flp;
 	private int numberOfComparison = 0;
@@ -231,6 +229,7 @@ public class DemonParallel<T> {
 		// fetched);
 	}
 
+	@SuppressWarnings({ "unused", "unchecked" })
 	private ArrayList[] getNeighborlistsWithDegree(Network<T> graph, ArrayList[] toBeFetched) {
 
 		int k = 0;
@@ -268,9 +267,9 @@ public class DemonParallel<T> {
 		return remoteNeighborsFetched;
 	}
 
+	@SuppressWarnings("unchecked")
 	private ArrayList[] getNeighborlists(HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> graph) {
 		ArrayList[] toBeFetched = new ArrayList[PCJ.threadCount()];
-		int numberOfThreads = PCJ.threadCount();
 
 		for (Vertex<Integer> v : connections.keySet()) {
 
@@ -317,6 +316,7 @@ public class DemonParallel<T> {
 		return remoteNeighborsFetched;
 	}
 
+	@SuppressWarnings("unused")
 	private void neigborlistBasedRemoteAccess(HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> graph) {
 
 		connections = findExternalNodes(graph);
@@ -404,9 +404,10 @@ public class DemonParallel<T> {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private ArrayList[] getConnections(ArrayList[] toBeSent, HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> graph) {
 
-		int numberOfThreads = PCJ.threadCount();
+	
 
 		for (Vertex<Integer> v : connections.keySet()) {
 
@@ -525,7 +526,7 @@ public class DemonParallel<T> {
 		return realResult;
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({ "unchecked", "unused" })
 	private void degreeBasedRemoteAccess(HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> partition) {
 
 		connections = findExternalNodes(partition);
@@ -599,6 +600,7 @@ public class DemonParallel<T> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private ResponsePacket processPacket(RequestPacket currentRequest,
 			HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> map) {
 		/*
@@ -650,50 +652,6 @@ public class DemonParallel<T> {
 		return result;
 	}
 
-	/**
-	 * This method checks whether two communities can be merged or not.
-	 * 
-	 * @param community1
-	 *            first community
-	 * @param community2
-	 *            second community
-	 * @param mergeFactor
-	 *            ï¿½?Â² is the threshold. If it is 1 we merge iff fully
-	 *            containment is achieved. If it is 0 two communities are merged
-	 *            anyway.
-	 * @return returns true if at least ï¿½?Â² fraction of the smaller community
-	 *         resides in their intersection.
-	 */
-	private boolean isMergible(Community<Integer> community1, Community<Integer> community2, double mergeFactor) {
-		numberOfComparison++;
-		if (community1 == null || community2 == null)
-			return false;
-
-		double intersection = 0;
-		double size1 = community1.getMembers().size();
-		double size2 = community2.getMembers().size();
-		double min = size2;
-		if (size1 < size2) {
-			min = size1;
-		}
-		if (min == size2) {
-			for (Integer value : community2.getMembers()) {
-				if (community1.getMembers().contains(value))
-					intersection++;
-			}
-		} else {
-			for (Integer value : community1.getMembers()) {
-				if (community2.getMembers().contains(value))
-					intersection++;
-			}
-		}
-		if (intersection / min >= mergeFactor) {
-
-			// them
-			return true;
-		}
-		return false;
-	}
 
 	/**
 	 * 
@@ -793,17 +751,20 @@ public class DemonParallel<T> {
 		startTime = System.nanoTime();
 		Collections.sort(pool.getCommunities(), Collections.reverseOrder());
 		int a = 0;
+		/*create CM object to merge communities found*/
+		CommunityMerger merger=new CommunityMerger(pool);
 		for (Community<Integer> c : pool.getCommunities()) {
 			c.setIndex(a);
 			a++;
 		}
 		if (mergingType == 1) {
-			improvedGraphBasedMerge(mergeFactor);
+			
+			merger.improvedGraphBasedMerge(mergeFactor);
 		} else {
-			quadraticMerge(pool, mergeFactor);
+			merger.quadraticMerge(pool, mergeFactor);
 		}
 
-		pool = cleanPool(pool);
+		pool = merger.cleanPool(pool);
 		// System.out.println("Number of communities after merge is " +
 		// pool.getCommunities().size());
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
@@ -845,205 +806,5 @@ public class DemonParallel<T> {
 		return result;
 	}
 
-	/**
-	 * Inverted indexed based merging. First creates inverted index list from
-	 * communities. For each vertex , we have corresponding communities in
-	 * posting list. Then this inverted index list is used to build community
-	 * dependency graph. By using this dependency graph we perform merging.
-	 * There is no unnecessary comparison.
-	 * 
-	 * @param mergeFactor
-	 */
-	private void improvedGraphBasedMerge(double mergeFactor) {
-		// System.out.println("Merging---> Started.");
-		constructInvertedIndex();
-		int n = pool.getCommunities().size();
-		int[] temporaryPool = new int[n];
-		boolean[] needsMergeCheck = new boolean[n];
-		int i = n - 2;
-		boolean merged = false;
-		while (i >= 0) {
-			Community<Integer> mergerComm = pool.getCommunities().get(i);
-			if (mergerComm == null) {
-				i = i - 1;
-				continue;
-			}
-			do {
-				int temporaryPoolSize = 0;
-				for (Community<Integer> dependecy : mergerComm.getDependencyList()) {
-					int indexOfCommunity = dependecy.getIndex();
-					if (indexOfCommunity > mergerComm.getIndex()) {
-						if (!merged)
-							needsMergeCheck[indexOfCommunity] = true;
-						temporaryPool[temporaryPoolSize++] = indexOfCommunity;
-					}
-				}
-				merged = false;
-				for (int k = 0; k < temporaryPoolSize; ++k) {
-					int index = temporaryPool[k];
-					Community<Integer> mergedComm = pool.getCommunities().get(index);
-					if (!needsMergeCheck[index])
-						continue;
-					if (isMergible(mergerComm, mergedComm, mergeFactor)) {
-						merged = true;
-						for (Community<Integer> c : mergedComm.getDependencyList()) {
-							if (c.getIndex() > mergerComm.getIndex())
-								needsMergeCheck[c.getIndex()] = true;
-						}
-						mergerComm = merge(mergerComm, mergedComm, true);
-					} else {
-						needsMergeCheck[index] = false;
-					}
-				}
-			} while (merged);
-			i = i - 1;
-		}
-	}
-
-	private Community<Integer> merge(Community<Integer> mergerComm, Community<Integer> mergedComm,
-			boolean withDependencies) {
-		// members
-		int size1 = mergerComm.getMembers().size();
-		int size2 = mergedComm.getMembers().size();
-		if (size1 > size2 || (size1 == size2 && mergerComm.getIndex() < mergedComm.getIndex())) {
-			mergerComm.getMembers().addAll(mergedComm.getMembers());
-			if (withDependencies) {
-				mergerComm.getDependencyList().remove(mergedComm);
-				mergedComm.getDependencyList().remove(mergerComm);
-				for (Community<Integer> c : mergedComm.getDependencyList()) {
-					c.getDependencyList().add(mergerComm);
-					c.getDependencyList().remove(mergedComm);
-				}
-				mergerComm.getDependencyList().addAll(mergedComm.getDependencyList());
-			}
-			pool.getCommunities().set(mergedComm.getIndex(), null);
-			return mergerComm;
-		} else {
-			merge(mergedComm, mergerComm, withDependencies);
-			pool.getCommunities().set(mergedComm.getIndex(), null);
-			pool.getCommunities().set(mergerComm.getIndex(), mergedComm);
-			mergedComm.setIndex(mergerComm.getIndex());
-			return mergedComm;
-		}
-	}
-
-	private void graphBasedMerge(double mergeFactor) {
-		constructInvertedIndex();
-		// System.out.println("Merging---> Started.");
-
-		int n = pool.getCommunities().size();
-		int[] temporaryPool = new int[n];
-
-		int i = n - 2;
-		boolean merged = false;
-		while (i >= 0) {
-			Community<Integer> mergerComm = pool.getCommunities().get(i);
-			if (mergerComm == null) {
-				i = i - 1;
-				continue;
-			}
-			do {
-				int temporaryPoolSize = 0;
-				for (Community<Integer> dependecy : mergerComm.getDependencyList()) {
-					int indexOfCommunity = dependecy.getIndex();
-					if (indexOfCommunity > mergerComm.getIndex()) {
-						temporaryPool[temporaryPoolSize++] = indexOfCommunity;
-					}
-				}
-				merged = false;
-				for (int k = 0; k < temporaryPoolSize; ++k) {
-					int index = temporaryPool[k];
-					Community<Integer> mergedComm = pool.getCommunities().get(index);
-					if (isMergible(mergerComm, mergedComm, mergeFactor)) {
-						merged = true;
-						mergerComm = merge(mergerComm, mergedComm, true);
-					}
-				}
-			} while (merged);
-			i = i - 1;
-		}
-	}
-
-	/**
-	 * This method performs merging. This is the brute force approach.
-	 * Complexity is very high.
-	 * 
-	 * @param mergeFactor
-	 */
-	private void quadraticMerge(CommunityList<Integer> pool, double mergeFactor) {
-
-		/* merging part pooling approach */
-		int j;
-		int n = pool.getCommunities().size();
-		int i = n - 2;
-		boolean merged = false;
-		while (i >= 0) {
-			j = i + 1;
-			Community<Integer> mergerComm = pool.getCommunities().get(i);
-			if (mergerComm == null)
-				continue;
-			do {
-				merged = false;
-				while (j < n) {
-					Community<Integer> mergedComm = pool.getCommunities().get(j);
-					if (mergedComm != null && isMergible(mergerComm, mergedComm, mergeFactor)) {
-						mergerComm = merge(mergerComm, mergedComm, false);
-						merged = true;
-					}
-					j = j + 1;
-				}
-			} while (merged);
-			i = i - 1;
-		}
-	}
-
-	/**
-	 * This method removes null values from community pool.
-	 */
-	private CommunityList<Integer> cleanPool(CommunityList<Integer> pool) {
-		Iterator<Community<Integer>> iter = pool.getCommunities().iterator();
-		CommunityList<Integer> cleanedPool = new CommunityList<Integer>();
-		while (iter.hasNext()) {
-			Community<Integer> community = iter.next();
-			if (community != null)
-				cleanedPool.getCommunities().add(community);
-		}
-		return cleanedPool;
-	}
-
-	/**
-	 * This method constructs inverted index list then it builds community
-	 * dependency graph.
-	 */
-	private void constructInvertedIndex() {
-		HashMap<Integer, ArrayList<Community<Integer>>> invertedIndex = null;
-
-		/* inverted index extraction */
-		invertedIndex = new HashMap<Integer, ArrayList<Community<Integer>>>();
-		for (Community<Integer> community : pool.getCommunities()) {
-			for (Integer member : community.getMembers()) {
-				ArrayList<Community<Integer>> ii = invertedIndex.get((member));
-				if (ii == null) {
-					ii = new ArrayList<Community<Integer>>();
-					invertedIndex.put(member, ii);
-				}
-
-				ii.add(community);
-			}
-
-		}
-
-		// System.out.println("Inverted index-->done.");
-
-		/* dependency construction */
-		for (ArrayList<Community<Integer>> list : invertedIndex.values()) {
-			for (int i = 0; i < list.size(); i++) {
-				list.get(i).getDependencyList().addAll(list);
-				list.get(i).getDependencyList().remove(list.get(i));
-			}
-		}
-		// System.out.println("dependency construction--> done.");
-
-	}
-
+	
 }

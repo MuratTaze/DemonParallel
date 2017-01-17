@@ -2,7 +2,6 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import labelPropagation.Community;
@@ -27,7 +26,7 @@ public class CommunityMerger {
 	 * 
 	 * @param mergeFactor
 	 */
-	private void improvedGraphBasedMerge(double mergeFactor) {
+	public void improvedGraphBasedMerge(double mergeFactor) {
 		// System.out.println("Merging---> Started.");
 		constructInvertedIndex();
 		int n = pool.getCommunities().size();
@@ -100,7 +99,7 @@ public class CommunityMerger {
 		}
 	}
 
-	private void graphBasedMerge(double mergeFactor) {
+	public void graphBasedMerge(double mergeFactor) {
 		constructInvertedIndex();
 		// System.out.println("Merging---> Started.");
 
@@ -143,7 +142,7 @@ public class CommunityMerger {
 	 * 
 	 * @param mergeFactor
 	 */
-	private void quadraticMerge(CommunityList<Integer> pool, double mergeFactor) {
+	public void quadraticMerge(CommunityList<Integer> pool, double mergeFactor) {
 
 		/* merging part pooling approach */
 		int j;
@@ -173,7 +172,7 @@ public class CommunityMerger {
 	/**
 	 * This method removes null values from community pool.
 	 */
-	private CommunityList<Integer> cleanPool(CommunityList<Integer> pool) {
+	public CommunityList<Integer> cleanPool(CommunityList<Integer> pool) {
 		Iterator<Community<Integer>> iter = pool.getCommunities().iterator();
 		CommunityList<Integer> cleanedPool = new CommunityList<Integer>();
 		while (iter.hasNext()) {
@@ -263,36 +262,5 @@ public class CommunityMerger {
 		return false;
 	}
 
-	/**
-	 * 
-	 * This method computes intersection of given two sets.
-	 * 
-	 * @param neighborList
-	 * @param neighborList2
-	 * @return returns intersection of two sets as a new set
-	 */
-	private HashSet<Integer> intersection(HashSet<Integer> neighborList, HashSet<Integer> neighborList2) {
-		HashSet<Integer> intersection = new HashSet<Integer>();
-
-		double size1 = neighborList.size();
-		double size2 = neighborList2.size();
-		double min = size2;
-		if (size1 < size2) {
-			min = size1;
-		}
-		if (min == size2) {
-			for (Integer value : neighborList2) {
-				if (neighborList.contains(value))
-					intersection.add(value);
-			}
-		} else {
-			for (Integer value : neighborList) {
-				if (neighborList2.contains(value))
-					intersection.add(value);
-			}
-		}
-
-		return intersection;
-	}
 	
 }

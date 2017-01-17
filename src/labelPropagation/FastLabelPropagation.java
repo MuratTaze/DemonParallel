@@ -170,24 +170,7 @@ public class FastLabelPropagation<T> {
 		return false;
 	}
 
-	/**
-	 * This method places each vertex to a random location in list. In-place
-	 * shuffling.
-	 * 
-	 * @param vertices
-	 *            list of vertices
-	 */
-	private void shuffle(List<T> vertices) {
-		Random r = new Random(1234432);
-		int i = vertices.size() - 1;
-		while (i != 0) {
-			int j = r.nextInt(i);
-			T temp = vertices.get(j);
-			vertices.set(j, vertices.get(i));
-			vertices.set(i, temp);
-			i--;
-		}
-	}
+	
 
 	public void setNetwork(HashMap<T, HashSet<T>> network) {
 		this.network = network;

@@ -62,7 +62,6 @@ public class Community<T> implements Serializable, Comparable<Community<T>> {
     }
 
     public int compareTo(Community<T> o) {
-        // TODO Auto-generated method stub
         return this.members.size() - o.members.size();
     }
 
