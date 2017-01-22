@@ -8,6 +8,7 @@ import java.util.HashSet;
 import labelPropagation.CommunityList;
 import labelPropagation.NeighborList;
 import labelPropagation.Vertex;
+import utils.DemonGlobalMergeFunctions;
 import utils.GraphLoader;
 
 import org.pcj.PCJ;
@@ -23,8 +24,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 	@SuppressWarnings("rawtypes")
 	@Shared
-	ArrayList[] requestArray, responseArray, requests, responses,
-			sendReceiveRequest, sendReceiveResponse;
+	ArrayList[] requestArray, responseArray, requests, responses, sendReceiveRequest, sendReceiveResponse;
 	@SuppressWarnings("rawtypes")
 	@Shared
 	RequestPacket[] packetRequest;
@@ -65,10 +65,12 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 			double starttime1 = System.nanoTime();
 			GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
-			/*partitions = partitioner.metisPartitioning(
-				"FormattedTraining.txt.part",
-					graphLoader.getVertexExistenceTable());*/
-			partitions=partitioner.degreeBalancedBfsPartitioning();
+			/*
+			 * partitions = partitioner.metisPartitioning(
+			 * "FormattedTraining.txt.part",
+			 * graphLoader.getVertexExistenceTable());
+			 */
+			partitions = partitioner.degreeBalancedBfsPartitioning();
 			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
 			System.out.println("Total Partitioning Time:" + estimatedTime1);
 		}
@@ -88,25 +90,23 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		PCJ.barrier();
 		partitions = null;
 
-		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray,
-				responseArray, requests, responses, sendReceiveRequest,
-				sendReceiveResponse, packetRequest, packetResponse);
+		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,
+				sendReceiveRequest, sendReceiveResponse, packetRequest, packetResponse);
 
 		demon.execute(partition, epsilon, 1);
 		globalCommunities = demon.getGlobalCommunities();
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time Thread:" + PCJ.myId() + "   "
-				+ estimatedTime);
-		// System.out.println(globalCommunities.getCommunities());
-		// call performGlobalMerge() here
-
+		System.out.println("Total Time Thread:" + PCJ.myId() + "   " + estimatedTime);
+		// 
+		// global merging
+		DemonGlobalMergeFunctions func = new DemonGlobalMergeFunctions(globalCommunities);
+		func.performGlobalMerge(demon);System.out.println(globalCommunities.getCommunities());
 	}
 
 	public static void main(String[] args) {
 		String[] nodes = new String[] { "localhost", "localhost" };
 
-		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class,
-				nodes);
+		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
 
 	}
 }

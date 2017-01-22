@@ -761,7 +761,7 @@ public class DemonParallel<T> {
 			
 			merger.improvedGraphBasedMerge(mergeFactor);
 		} else {
-			merger.quadraticMerge(pool, mergeFactor);
+			merger.quadraticMerge(mergeFactor);
 		}
 
 		pool = merger.cleanPool(pool);

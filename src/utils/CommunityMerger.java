@@ -142,7 +142,7 @@ public class CommunityMerger {
 	 * 
 	 * @param mergeFactor
 	 */
-	public void quadraticMerge(CommunityList<Integer> pool, double mergeFactor) {
+	public void quadraticMerge(double mergeFactor) {
 
 		/* merging part pooling approach */
 		int j;

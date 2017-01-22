@@ -1,86 +1,45 @@
 package utils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Iterator;
 
 import org.pcj.PCJ;
 
 import demon.parallel.DemonParallel;
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
-import labelPropagation.Network;
-import labelPropagation.Vertex;
 
 public class DemonGlobalMergeFunctions {
 	CommunityList<Integer> globalCommunities;
 
-private void performGlobalMerge(DemonParallel<Integer> demon,GraphLoader graphLoader) throws FileNotFoundException{
-	//interprocess merge operation starts here
-	int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
-	for (int i = 0; i < numberOfIterations; i++) {
-		// wait for others to reach the same step 
-		PCJ.barrier();
+	public DemonGlobalMergeFunctions(CommunityList<Integer> globalCommunities) {
 
-		 //determine who will merge with whom at this step 
-		if (myTurn(i)) {
-
-			int target = PCJ.myId() + (int) Math.pow(2, i);
-			if (target >= PCJ.threadCount())
-				continue;
-
-			CommunityList<Integer> targetCommunities = PCJ.get(target, "globalCommunities");
-
-			System.out.println("merge!!!!!!!!!!!!!!!!!!! from " + PCJ.myId());
-			globalCommunities.getCommunities().addAll(targetCommunities.getCommunities());
-			merge(1);
-
-		}
-	}
-	if (PCJ.myId() == 0) {
-		double average_conductance = 0;
-		double total_conductance = 0;
-		// calculate conductance values 
-		for (int i = 0; i < globalCommunities.getCommunities().size(); i++) {
-			total_conductance += conductance(demon.getGlobalCommunities().getCommunities().get(i),
-					graphLoader.getGraph());
-
-		}
-		average_conductance = total_conductance / globalCommunities.getCommunities().size();
-		System.out.println("Average conductance value is " + average_conductance);
-		PrintWriter writer = new PrintWriter(new File("ACM_Communities_Found.txt"));
-		writer.print(globalCommunities);
-		writer.flush();
-		writer.close();
-	}
-}
-	private double conductance(Community<Integer> community, Network<Integer> network) {
-		double in_degree = 0;
-		double out_degree = 0;
-		Iterator<Integer> iter = community.getMembers().iterator();
-		while (iter.hasNext()) {
-			Integer element = iter.next();
-			double current_degree = degree(network.getGraph().get(new Vertex<Integer>(element)).getListOfNeighbors(),
-					community.getMembers());
-			out_degree += network.getGraph().get(new Vertex<Integer>(element)).getListOfNeighbors().size()
-					- current_degree;
-			in_degree += current_degree;
-		}
-		return out_degree / (in_degree / 2);
-
+		super();
+		this.globalCommunities = globalCommunities;
 	}
 
-	private double degree(HashSet<Vertex<Integer>> HashSet, HashSet<Integer> HashSet2) {
-		double degree = 0;
-		Iterator<Integer> iter = HashSet2.iterator();
-		while (iter.hasNext()) {
-			if (HashSet.contains(new Vertex<Integer>(iter.next()))) {
-				degree++;
+	public void performGlobalMerge(DemonParallel<Integer> demon) throws FileNotFoundException {
+		// interprocess merge operation starts here
+		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
+		for (int i = 0; i < numberOfIterations; i++) {
+			// wait for others to reach the same step
+			PCJ.barrier();
+
+			// determine who will merge with whom at this step
+			if (myTurn(i)) {
+
+				int target = PCJ.myId() + (int) Math.pow(2, i);
+				if (target >= PCJ.threadCount())
+					continue;
+
+				CommunityList<Integer> targetCommunities = PCJ.get(target, "globalCommunities");
+
+				System.out.println("merge!!!!!!!!!!!!!!!!!!! from " + PCJ.myId());
+				globalCommunities.getCommunities().addAll(targetCommunities.getCommunities());
+				merge(1);
+
 			}
 		}
-		return degree;
+
 	}
 
 	private void merge(double mergeFactor) {
