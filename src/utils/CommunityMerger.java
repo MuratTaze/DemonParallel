@@ -13,6 +13,12 @@ public class CommunityMerger {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+	public CommunityList<Integer> getPool() {
+		return pool;
+	}
+	public void setPool(CommunityList<Integer> pool) {
+		this.pool = pool;
+	}
 	public CommunityMerger(CommunityList<Integer> pool) {
 		this.pool=pool;
 		// TODO Auto-generated constructor stub
