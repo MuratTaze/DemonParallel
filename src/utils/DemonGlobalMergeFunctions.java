@@ -5,7 +5,6 @@ import java.util.Collections;
 
 import org.pcj.PCJ;
 
-import demon.parallel.DemonParallel;
 import labelPropagation.Community;
 import labelPropagation.CommunityList;
 
@@ -18,7 +17,13 @@ public class DemonGlobalMergeFunctions {
 		this.globalCommunities = globalCommunities;
 	}
 
-	public void naiveGlobalMerge(DemonParallel<Integer> demon) throws FileNotFoundException {
+	/**
+	 * It is like merge sort. At each level number of active threads decrease to
+	 * half. It has some load balance problems.
+	 * 
+	 * @throws FileNotFoundException
+	 */
+	public void naiveGlobalMerge() throws FileNotFoundException {
 		// interprocess merge operation starts here
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
 		/* create CM object to merge communities found */
@@ -36,7 +41,6 @@ public class DemonGlobalMergeFunctions {
 
 				CommunityList<Integer> targetCommunities = PCJ.get(target, "globalCommunities");
 
-				
 				globalCommunities.getCommunities().addAll(targetCommunities.getCommunities());
 				globalCommunities = merger.cleanPool(globalCommunities);
 				Collections.sort(globalCommunities.getCommunities(), Collections.reverseOrder());
@@ -52,7 +56,7 @@ public class DemonGlobalMergeFunctions {
 
 			}
 			if (PCJ.myId() == 0) {
-				System.out.println("Level : "+i);
+				System.out.println("Level : " + i);
 				System.out.println(globalCommunities.getCommunities());
 
 			}
@@ -60,6 +64,14 @@ public class DemonGlobalMergeFunctions {
 
 	}
 
+	/**
+	 * Checks whether it is right time to do communication or not according to
+	 * the iteration variable which is used represent current merging level
+	 * 
+	 * @param iteration
+	 * @return returns true if the running thread is to do merge with another
+	 *         thread
+	 */
 	private boolean myTurn(int iteration) {
 		if (PCJ.myId() % (Math.pow(2, iteration + 1)) == 0)
 			return true;

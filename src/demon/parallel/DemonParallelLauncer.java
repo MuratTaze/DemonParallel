@@ -100,8 +100,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		//
 		// global merging
 		DemonGlobalMergeFunctions func = new DemonGlobalMergeFunctions(globalCommunities);
-		func.naiveGlobalMerge(demon);
-		
+		func.naiveGlobalMerge();
+
 	}
 
 	public static void main(String[] args) {
