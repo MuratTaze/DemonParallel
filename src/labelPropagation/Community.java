@@ -9,9 +9,13 @@ import java.util.HashSet;
 
 public class Community<T> implements Serializable, Comparable<Community<T>> {
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6059193219503619525L;
+	/**
      * 
      */
-    private static final long serialVersionUID = 1L;
+   
     private T communityId;
     private HashSet<T> members;
     private HashSet<Community<T>> dependencyList;

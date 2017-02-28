@@ -9,6 +9,7 @@ import labelPropagation.Community;
 import labelPropagation.CommunityList;
 
 public class DemonGlobalMergeFunctions {
+	
 	CommunityList<Integer> globalCommunities;
 
 	public DemonGlobalMergeFunctions(CommunityList<Integer> globalCommunities) {
@@ -24,6 +25,8 @@ public class DemonGlobalMergeFunctions {
 	 * @throws FileNotFoundException
 	 */
 	public void naiveGlobalMerge() throws FileNotFoundException {
+		double startTime;
+		double estimatedTime;
 		// interprocess merge operation starts here
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
 		/* create CM object to merge communities found */
@@ -31,7 +34,7 @@ public class DemonGlobalMergeFunctions {
 		for (int i = 0; i < numberOfIterations; i++) {
 			// wait for others to reach the same step
 			PCJ.barrier();
-
+			startTime = System.nanoTime();
 			// determine who will merge with whom at this step
 			if (myTurn(i)) {
 
@@ -52,13 +55,19 @@ public class DemonGlobalMergeFunctions {
 					c.setIndex(a);
 					a++;
 				}
-				merger.improvedGraphBasedMerge(1);
+				merger.improvedGraphBasedMerge(0.6);
 
+			}else{
+				System.out.println(PCJ.myId()+" will not work");
+				
 			}
+			
 			if (PCJ.myId() == 0) {
-				System.out.println("Level : " + i);
-				System.out.println(globalCommunities.getCommunities());
-
+				
+				//System.out.println(globalCommunities.getCommunities());
+				estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
+				System.out.println(
+						"Total Time for Global Merge Level " + i + "  " + estimatedTime + " seconds");
 			}
 		}
 
