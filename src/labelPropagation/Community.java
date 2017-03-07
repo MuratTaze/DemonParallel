@@ -1,72 +1,97 @@
 package labelPropagation;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashSet;
 
-
-
-
-
 public class Community<T> implements Serializable, Comparable<Community<T>> {
-    /**
+	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -6059193219503619525L;
+
 	/**
-     * 
-     */
-   
-    private T communityId;
-    private HashSet<T> members;
-    private HashSet<Community<T>> dependencyList;
-    private int index;
+	 * 
+	 */
 
-    public int getIndex() {
-        return index;
-    }
+	private T communityId;
+	private HashSet<T> members;
+	private HashSet<T> dependencyList;
+	private int index;
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
+	public int getIndex() {
+		return index;
+	}
 
-    public HashSet<Community<T>> getDependencyList() {
-        return dependencyList;
-    }
+	public void setIndex(int index) {
+		this.index = index;
+	}
 
-    public void setDependencyList(HashSet<Community<T>> dependencyList) {
-        this.dependencyList = dependencyList;
-    }
+	public HashSet<T> getDependencyList() {
+		return dependencyList;
+	}
 
-    public Community() {
-        super();
-        dependencyList = new HashSet<Community<T>>(100);
+	public void setDependencyList(HashSet<T> dependencyList) {
+		this.dependencyList = dependencyList;
+	}
 
-    }
+	public Community() {
+		super();
+		dependencyList = new HashSet<T>();
 
-    public T getCommunityId() {
-        return communityId;
-    }
+	}
 
-    public HashSet<T> getMembers() {
-        return members;
-    }
+	public T getCommunityId() {
+		return communityId;
+	}
 
-    public void setCommunityId(T communityId) {
-        this.communityId = communityId;
-    }
+	public HashSet<T> getMembers() {
+		return members;
+	}
 
-    public void setMembers(HashSet<T> members) {
-        this.members = members;
-    }
+	public void setCommunityId(T communityId) {
+		this.communityId = communityId;
+	}
 
-    @Override
-    public String toString() {
-        return "\n    Community [communityId=" + communityId + ", members="
-                + members + "]\n";
-    }
+	public void setMembers(HashSet<T> members) {
+		this.members = members;
+	}
 
-    public int compareTo(Community<T> o) {
-        return this.members.size() - o.members.size();
-    }
+	private void writeObject(ObjectOutputStream o) throws IOException {
+		if (members != null) {
+			o.writeObject(members.size());
+
+			for (T member : members) {
+				o.writeObject(member);
+			}
+		} else {
+			o.writeObject(0);
+		}
+		
+		o.writeObject(communityId);
+		o.writeObject(index);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void readObject(ObjectInputStream o) throws IOException, ClassNotFoundException {
+		int numberOfMembers = (int) o.readObject();
+		this.members = new HashSet<T>(numberOfMembers);
+		for (int i = 0; i < numberOfMembers; i++) {
+			this.members.add(((T) (o.readObject())));
+		}
+
+		this.communityId = (T) o.readObject();
+		this.index = (int) o.readObject();
+	}
+
+	@Override
+	public String toString() {
+		return "\n    Community [communityIndex=" + index + ", members=" + members + "]\n";
+	}
+
+	public int compareTo(Community<T> o) {
+		return this.members.size() - o.members.size();
+	}
 
 }

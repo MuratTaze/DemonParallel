@@ -25,7 +25,7 @@ public class DemonGlobalMergeFunctions {
 	 * @throws FileNotFoundException
 	 */
 	public void naiveGlobalMerge() throws FileNotFoundException {
-		double startTime;
+		double startTime = System.nanoTime();
 		double estimatedTime;
 		// interprocess merge operation starts here
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
@@ -34,7 +34,7 @@ public class DemonGlobalMergeFunctions {
 		for (int i = 0; i < numberOfIterations; i++) {
 			// wait for others to reach the same step
 			PCJ.barrier();
-			startTime = System.nanoTime();
+			
 			// determine who will merge with whom at this step
 			if (myTurn(i)) {
 

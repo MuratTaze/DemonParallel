@@ -2,6 +2,7 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import labelPropagation.Community;
@@ -9,20 +10,25 @@ import labelPropagation.CommunityList;
 
 public class CommunityMerger {
 	private CommunityList<Integer> pool = null;
+
 	public CommunityMerger() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+
 	public CommunityList<Integer> getPool() {
 		return pool;
 	}
+
 	public void setPool(CommunityList<Integer> pool) {
 		this.pool = pool;
 	}
+
 	public CommunityMerger(CommunityList<Integer> pool) {
-		this.pool=pool;
+		this.pool = pool;
 		// TODO Auto-generated constructor stub
 	}
+
 	/**
 	 * Inverted indexed based merging. First creates inverted index list from
 	 * communities. For each vertex , we have corresponding communities in
@@ -34,6 +40,7 @@ public class CommunityMerger {
 	 */
 	public void improvedGraphBasedMerge(double mergeFactor) {
 		// System.out.println("Merging---> Started.");
+
 		constructInvertedIndex();
 		int n = pool.getCommunities().size();
 		int[] temporaryPool = new int[n];
@@ -48,8 +55,8 @@ public class CommunityMerger {
 			}
 			do {
 				int temporaryPoolSize = 0;
-				for (Community<Integer> dependecy : mergerComm.getDependencyList()) {
-					int indexOfCommunity = dependecy.getIndex();
+				for (Integer dependecy : mergerComm.getDependencyList()) {
+					int indexOfCommunity = dependecy;
 					if (indexOfCommunity > mergerComm.getIndex()) {
 						if (!merged)
 							needsMergeCheck[indexOfCommunity] = true;
@@ -64,9 +71,9 @@ public class CommunityMerger {
 						continue;
 					if (isMergible(mergerComm, mergedComm, mergeFactor)) {
 						merged = true;
-						for (Community<Integer> c : mergedComm.getDependencyList()) {
-							if (c.getIndex() > mergerComm.getIndex())
-								needsMergeCheck[c.getIndex()] = true;
+						for (Integer c : mergedComm.getDependencyList()) {
+							if (c > mergerComm.getIndex())
+								needsMergeCheck[c] = true;
 						}
 						mergerComm = merge(mergerComm, mergedComm, true);
 					} else {
@@ -86,11 +93,11 @@ public class CommunityMerger {
 		if (size1 > size2 || (size1 == size2 && mergerComm.getIndex() < mergedComm.getIndex())) {
 			mergerComm.getMembers().addAll(mergedComm.getMembers());
 			if (withDependencies) {
-				mergerComm.getDependencyList().remove(mergedComm);
-				mergedComm.getDependencyList().remove(mergerComm);
-				for (Community<Integer> c : mergedComm.getDependencyList()) {
-					c.getDependencyList().add(mergerComm);
-					c.getDependencyList().remove(mergedComm);
+				mergerComm.getDependencyList().remove(mergedComm.getIndex());
+				mergedComm.getDependencyList().remove(mergerComm.getIndex());
+				for (Integer c : mergedComm.getDependencyList()) {
+					pool.getCommunities().get(c).getDependencyList().add(mergerComm.getIndex());
+					pool.getCommunities().get(c).getDependencyList().remove(mergedComm.getIndex());
 				}
 				mergerComm.getDependencyList().addAll(mergedComm.getDependencyList());
 			}
@@ -100,7 +107,16 @@ public class CommunityMerger {
 			merge(mergedComm, mergerComm, withDependencies);
 			pool.getCommunities().set(mergedComm.getIndex(), null);
 			pool.getCommunities().set(mergerComm.getIndex(), mergedComm);
+			for (Community<Integer> cmm : pool.getCommunities()) {
+				if (cmm != null && cmm.getDependencyList() != null) {
+					if (cmm.getDependencyList().contains(mergedComm.getIndex())) {
+						cmm.getDependencyList().remove(mergedComm.getIndex());
+						cmm.getDependencyList().add(mergerComm.getIndex());
+					}
+				}
+			}
 			mergedComm.setIndex(mergerComm.getIndex());
+
 			return mergedComm;
 		}
 	}
@@ -122,8 +138,8 @@ public class CommunityMerger {
 			}
 			do {
 				int temporaryPoolSize = 0;
-				for (Community<Integer> dependecy : mergerComm.getDependencyList()) {
-					int indexOfCommunity = dependecy.getIndex();
+				for (Integer dependecy : mergerComm.getDependencyList()) {
+					int indexOfCommunity = dependecy;
 					if (indexOfCommunity > mergerComm.getIndex()) {
 						temporaryPool[temporaryPoolSize++] = indexOfCommunity;
 					}
@@ -183,8 +199,10 @@ public class CommunityMerger {
 		CommunityList<Integer> cleanedPool = new CommunityList<Integer>();
 		while (iter.hasNext()) {
 			Community<Integer> community = iter.next();
-			if (community != null)
+			if (community != null) {
+				community.setDependencyList(new HashSet<Integer>());
 				cleanedPool.getCommunities().add(community);
+			}
 		}
 		return cleanedPool;
 	}
@@ -194,19 +212,19 @@ public class CommunityMerger {
 	 * dependency graph.
 	 */
 	private void constructInvertedIndex() {
-		HashMap<Integer, ArrayList<Community<Integer>>> invertedIndex = null;
+		HashMap<Integer, ArrayList<Integer>> invertedIndex = null;
 
 		/* inverted index extraction */
-		invertedIndex = new HashMap<Integer, ArrayList<Community<Integer>>>();
+		invertedIndex = new HashMap<Integer, ArrayList<Integer>>();
 		for (Community<Integer> community : pool.getCommunities()) {
 			for (Integer member : community.getMembers()) {
-				ArrayList<Community<Integer>> ii = invertedIndex.get((member));
+				ArrayList<Integer> ii = invertedIndex.get((member));
 				if (ii == null) {
-					ii = new ArrayList<Community<Integer>>();
+					ii = new ArrayList<Integer>();
 					invertedIndex.put(member, ii);
 				}
 
-				ii.add(community);
+				ii.add(community.getIndex());
 			}
 
 		}
@@ -214,15 +232,16 @@ public class CommunityMerger {
 		// System.out.println("Inverted index-->done.");
 
 		/* dependency construction */
-		for (ArrayList<Community<Integer>> list : invertedIndex.values()) {
+		for (ArrayList<Integer> list : invertedIndex.values()) {
 			for (int i = 0; i < list.size(); i++) {
-				list.get(i).getDependencyList().addAll(list);
-				list.get(i).getDependencyList().remove(list.get(i));
+				pool.getCommunities().get(list.get(i)).getDependencyList().addAll(list);
+				pool.getCommunities().get(list.get(i)).getDependencyList().remove(list.get(i));
 			}
 		}
 		// System.out.println("dependency construction--> done.");
 
 	}
+
 	/**
 	 * This method checks whether two communities can be merged or not.
 	 * 
@@ -238,7 +257,7 @@ public class CommunityMerger {
 	 *         resides in their intersection.
 	 */
 	private boolean isMergible(Community<Integer> community1, Community<Integer> community2, double mergeFactor) {
-		
+
 		if (community1 == null || community2 == null)
 			return false;
 
@@ -268,5 +287,4 @@ public class CommunityMerger {
 		return false;
 	}
 
-	
 }

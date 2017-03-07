@@ -70,7 +70,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 			 * "FormattedTraining.txt.part",
 			 * graphLoader.getVertexExistenceTable());
 			 */
-			partitions = partitioner.degreeBalancedBfsPartitioning();
+			partitions = partitioner.randomPartitioning();
 			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
 			System.out.println("Total Partitioning Time:" + estimatedTime1);
 		}
@@ -100,14 +100,14 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		//
 		// global merging
 		DemonGlobalMergeFunctions func = new DemonGlobalMergeFunctions(globalCommunities);
-		func.naiveGlobalMerge();
+		func.naiveGlobalMerge();;
 		
 	}
 
 	public static void main(String[] args) {
-		String[] nodes = new String[] { "localhost", "localhost","localhost", "localhost" };
+		//String[] nodes = new String[] { "localhost", "localhost" };
 
-		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
+		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, "nodes.txt");
 
 	}
 }
