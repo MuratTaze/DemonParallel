@@ -45,7 +45,7 @@ public class MetisTransformer {
 		writer.print(graph.keySet().size());//number of vertices
 		writer.print(" ");
 		
-		writer.print(GraphLoader.edgeCount/2);//number of edges
+		writer.print(GraphLoader.edgeCount);//number of edges
 		writer.print(" ");
 		writer.print(10);// the graph has vertex weights
 		writer.print(" ");
@@ -99,7 +99,7 @@ public class MetisTransformer {
 		writer.print(graph.keySet().size());//number of vertices
 		writer.print(" ");
 		
-		writer.print(GraphLoader.edgeCount/2);//number of edges
+		writer.print((GraphLoader.edgeCount));//number of edges
 		
 		writer.print("\n");
 		Vertex<Integer> vrt=new Vertex<Integer>();

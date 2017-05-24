@@ -68,11 +68,11 @@ public class GraphLoader {
 				if (map.get(v2) == null) {
 
 					HashSet<Vertex<Integer>> neighborList = new HashSet<Vertex<Integer>>();
-					neighborList.add(v1);edgeCount++;
+					neighborList.add(v1);
 					map.put(v2, neighborList);
 
 				} else {
-					map.get(v2).add(v1);edgeCount++;
+					map.get(v2).add(v1);
 
 				}
 			}

@@ -52,7 +52,7 @@ public class DemonParallel<T> {
 
 		super();
 		lp = new LabelPropagation<Integer>();
-		flp=new FastLabelPropagation<Integer>();
+		flp = new FastLabelPropagation<Integer>();
 	}
 
 	public DemonParallel(ArrayList[] requestArray, ArrayList[] responseArray, ArrayList[] requests,
@@ -60,7 +60,7 @@ public class DemonParallel<T> {
 			RequestPacket[] packetRequest, ResponsePacket[] packetResponse) {
 		super();
 		lp = new LabelPropagation<Integer>();
-		flp=new FastLabelPropagation<Integer>();
+		flp = new FastLabelPropagation<Integer>();
 		this.requestArray = requestArray;
 		this.responseArray = responseArray;
 		this.requests = requests;
@@ -407,8 +407,6 @@ public class DemonParallel<T> {
 	@SuppressWarnings("unchecked")
 	private ArrayList[] getConnections(ArrayList[] toBeSent, HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> graph) {
 
-	
-
 		for (Vertex<Integer> v : connections.keySet()) {
 
 			int index = v.getThreadNumber();
@@ -461,7 +459,7 @@ public class DemonParallel<T> {
 		 * gönderdiðin sýrayla(toBeSent) gelen sýra ayný oradan bak ekle map'a
 		 */
 		for (int i = 0; i < PCJ.threadCount(); i++) {
-			if (i != PCJ.myId()&&toBeSent[i]!=null)
+			if (i != PCJ.myId() && toBeSent[i] != null)
 				compare(toBeSent[i], remoteNeighborsFetched[i]);
 		}
 
@@ -565,7 +563,7 @@ public class DemonParallel<T> {
 		 * gönderdiðin sýrayla(toBeSent) gelen sýra ayný oradan bak ekle map'a
 		 */
 		for (int i = 0; i < PCJ.threadCount(); i++) {
-			if (i != PCJ.myId()&&requestPackets[i]!=null)
+			if (i != PCJ.myId() && requestPackets[i] != null)
 				compare(requestPackets[i].getConnectionListQuery(), responsePackets[i].getConnections());
 		}
 
@@ -652,7 +650,6 @@ public class DemonParallel<T> {
 		return result;
 	}
 
-
 	/**
 	 * 
 	 * This method computes intersection of given two sets.
@@ -708,10 +705,11 @@ public class DemonParallel<T> {
 
 		System.out.println("Thread:" + PCJ.myId() + " " + partition.size());
 		double startTime = System.nanoTime();
-	// degreeBasedRemoteAccess(partition);
+		//degreeBasedRemoteAccess(partition);
 		//neigborlistBasedRemoteAccess(partition);
-			 connectionBasedRemoteAccess(partition);
+		  connectionBasedRemoteAccess(partition);
 		partition = null;
+		
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		// if (PCJ.myId() == 0)
 		System.out.println("Total Time for Remote Access: " + estimatedTime + " seconds");
@@ -743,22 +741,20 @@ public class DemonParallel<T> {
 			}
 		}
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		// if (PCJ.myId() == 0)
-		System.out.println("EGO + Label Propagation: " + " Thread:" + PCJ.myId() + "  " + estimatedTime
-				+ " seconds"+ vertexList.length+" vertices.");
-
+		System.out.println("Total Time for LP: " + " Thread:" + PCJ.myId() + "  "+ estimatedTime);
 		// long startTime = System.nanoTime();
 		startTime = System.nanoTime();
+		int pool_size_before_merge = pool.getCommunities().size();
 		Collections.sort(pool.getCommunities(), Collections.reverseOrder());
 		int a = 0;
-		/*create CM object to merge communities found*/
-		CommunityMerger merger=new CommunityMerger(pool);
+		/* create CM object to merge communities found */
+		CommunityMerger merger = new CommunityMerger(pool);
 		for (Community<Integer> c : pool.getCommunities()) {
 			c.setIndex(a);
 			a++;
 		}
 		if (mergingType == 1) {
-			
+
 			merger.improvedGraphBasedMerge(mergeFactor);
 		} else {
 			merger.quadraticMerge(mergeFactor);
@@ -769,7 +765,9 @@ public class DemonParallel<T> {
 		// pool.getCommunities().size());
 		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
 		// if (PCJ.myId() == 0)
-		System.out.println("Total Time for Merge: " + " Thread:" + PCJ.myId() + "  " + estimatedTime + " seconds");
+		System.out.println("Total Time for Merge: " + " Thread:" + PCJ.myId() + "  " + "  pool size before merge:"
+				+ pool_size_before_merge + " pool size after merge:" + pool.getCommunities().size() + "  "
+				+ +estimatedTime + " seconds");
 	}
 
 	/**
@@ -806,5 +804,4 @@ public class DemonParallel<T> {
 		return result;
 	}
 
-	
 }

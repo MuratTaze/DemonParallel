@@ -9,7 +9,7 @@ import labelPropagation.Community;
 import labelPropagation.CommunityList;
 
 public class DemonGlobalMergeFunctions {
-	
+
 	CommunityList<Integer> globalCommunities;
 
 	public DemonGlobalMergeFunctions(CommunityList<Integer> globalCommunities) {
@@ -22,11 +22,14 @@ public class DemonGlobalMergeFunctions {
 	 * It is like merge sort. At each level number of active threads decrease to
 	 * half. It has some load balance problems.
 	 * 
+	 * @return
+	 * 
 	 * @throws FileNotFoundException
 	 */
-	public void naiveGlobalMerge() throws FileNotFoundException {
+	public CommunityList<Integer> naiveGlobalMerge() throws FileNotFoundException {
 		double startTime = System.nanoTime();
 		double estimatedTime;
+
 		// interprocess merge operation starts here
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
 		/* create CM object to merge communities found */
@@ -34,7 +37,7 @@ public class DemonGlobalMergeFunctions {
 		for (int i = 0; i < numberOfIterations; i++) {
 			// wait for others to reach the same step
 			PCJ.barrier();
-			
+
 			// determine who will merge with whom at this step
 			if (myTurn(i)) {
 
@@ -55,22 +58,22 @@ public class DemonGlobalMergeFunctions {
 					c.setIndex(a);
 					a++;
 				}
-				merger.improvedGraphBasedMerge(0.6);
+				merger.improvedGraphBasedMerge(0.8);
 
-			}else{
-				System.out.println(PCJ.myId()+" will not work");
-				
+			} else {
+				System.out.println(PCJ.myId() + " will not work");
+
 			}
-			
+
 			if (PCJ.myId() == 0) {
-				
-				//System.out.println(globalCommunities.getCommunities());
+
+				// System.out.println(globalCommunities.getCommunities());
 				estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-				System.out.println(
-						"Total Time for Global Merge Level " + i + "  " + estimatedTime + " seconds");
+				System.out.println("Total Time for Global Merge Level " + i + "  pool size:"
+						+ globalCommunities.getCommunities().size() + "  " + estimatedTime + " seconds");
 			}
 		}
-
+		return globalCommunities;
 	}
 
 	/**

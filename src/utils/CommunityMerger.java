@@ -265,18 +265,34 @@ public class CommunityMerger {
 		double size1 = community1.getMembers().size();
 		double size2 = community2.getMembers().size();
 		double min = size2;
+		int miss = 0;
+		int maxMiss;
 		if (size1 < size2) {
 			min = size1;
 		}
+		maxMiss = (int) (min * (1 - mergeFactor));// define maximum number of
+													// misses
 		if (min == size2) {
 			for (Integer value : community2.getMembers()) {
-				if (community1.getMembers().contains(value))
+				if (community1.getMembers().contains(value)) {
 					intersection++;
+				} else {
+					miss++;
+					if (miss == maxMiss) {
+						return false;
+					}
+				}
 			}
 		} else {
 			for (Integer value : community1.getMembers()) {
-				if (community2.getMembers().contains(value))
+				if (community2.getMembers().contains(value)) {
 					intersection++;
+				} else {
+					miss++;
+					if (miss == maxMiss) {
+						return false;
+					}
+				}
 			}
 		}
 		if (intersection / min >= mergeFactor) {

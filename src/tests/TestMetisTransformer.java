@@ -8,11 +8,12 @@ import utils.MetisTransformer;
 public class TestMetisTransformer {
 
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
-		GraphLoader graphLoader = new GraphLoader("traininGraph.txt");
+		
+		GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
 		 MetisTransformer mt=new MetisTransformer(graphLoader.getGraph());
-		// mt.weightedMinCutMetis();
-		 mt.minCutMetis();
+		 mt.weightedMinCutMetis();
+		// mt.minCutMetis();
+		 
 	}
 
 }

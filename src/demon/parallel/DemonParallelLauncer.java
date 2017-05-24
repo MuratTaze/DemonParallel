@@ -42,8 +42,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		 * double epsilon = 0; do { runExperiment(epsilon); epsilon = epsilon +
 		 * 0.1; } while (epsilon <= 1.0);
 		 */
-
-		runExperiment(1);
+		runExperiment(0.7);
 
 	}
 
@@ -63,14 +62,14 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		/* master thread partitions the graph */
 		if (PCJ.myId() == 0) {
 			double starttime1 = System.nanoTime();
-			GraphLoader graphLoader = new GraphLoader("Email-Enron.txt");
+			GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
+		
+			  partitions = partitioner.metisPartitioning(
+			  "amazon4weighted.txt",
+			 graphLoader.getVertexExistenceTable());
 			/*
-			 * partitions = partitioner.metisPartitioning(
-			 * "FormattedTraining.txt.part",
-			 * graphLoader.getVertexExistenceTable());
-			 */
-			partitions = partitioner.randomPartitioning();
+				partitions = partitioner.degreeBalancedBfsPartitioning(); */
 			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
 			System.out.println("Total Partitioning Time:" + estimatedTime1);
 		}
@@ -95,17 +94,19 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 		demon.execute(partition, epsilon, 1);
 		globalCommunities = demon.getGlobalCommunities();
-		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time Thread:" + PCJ.myId() + "   " + estimatedTime);
+
 		//
 		// global merging
 		DemonGlobalMergeFunctions func = new DemonGlobalMergeFunctions(globalCommunities);
-		func.naiveGlobalMerge();;
-		
+		globalCommunities = func.naiveGlobalMerge();
+
+		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
+		System.out.println("Total Time Thread:" + PCJ.myId() + "   " + estimatedTime);
+		// System.out.println(globalCommunities.getCommunities());
 	}
 
 	public static void main(String[] args) {
-		//String[] nodes = new String[] { "localhost", "localhost" };
+		String[] nodes = new String[] {"localhost","localhost","localhost","localhost"};
 
 		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, "nodes.txt");
 
