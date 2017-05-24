@@ -39,7 +39,7 @@ public class CommunityMerger {
 	 * @param mergeFactor
 	 */
 	public void improvedGraphBasedMerge(double mergeFactor) {
-		// System.out.println("Merging---> Started.");
+		
 
 		constructInvertedIndex();
 		int n = pool.getCommunities().size();
@@ -123,7 +123,7 @@ public class CommunityMerger {
 
 	public void graphBasedMerge(double mergeFactor) {
 		constructInvertedIndex();
-		// System.out.println("Merging---> Started.");
+		
 
 		int n = pool.getCommunities().size();
 		int[] temporaryPool = new int[n];
@@ -229,8 +229,7 @@ public class CommunityMerger {
 
 		}
 
-		// System.out.println("Inverted index-->done.");
-
+		
 		/* dependency construction */
 		for (ArrayList<Integer> list : invertedIndex.values()) {
 			for (int i = 0; i < list.size(); i++) {
@@ -238,7 +237,7 @@ public class CommunityMerger {
 				pool.getCommunities().get(list.get(i)).getDependencyList().remove(list.get(i));
 			}
 		}
-		// System.out.println("dependency construction--> done.");
+		
 
 	}
 

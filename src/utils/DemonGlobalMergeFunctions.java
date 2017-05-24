@@ -27,8 +27,7 @@ public class DemonGlobalMergeFunctions {
 	 * @throws FileNotFoundException
 	 */
 	public CommunityList<Integer> naiveGlobalMerge() throws FileNotFoundException {
-		double startTime = System.nanoTime();
-		double estimatedTime;
+	
 
 		// interprocess merge operation starts here
 		int numberOfIterations = (int) (Math.log10(PCJ.threadCount()) / Math.log10(2));
@@ -60,18 +59,9 @@ public class DemonGlobalMergeFunctions {
 				}
 				merger.improvedGraphBasedMerge(0.8);
 
-			} else {
-				System.out.println(PCJ.myId() + " will not work");
+			} 
 
-			}
-
-			if (PCJ.myId() == 0) {
-
-				// System.out.println(globalCommunities.getCommunities());
-				estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-				System.out.println("Total Time for Global Merge Level " + i + "  pool size:"
-						+ globalCommunities.getCommunities().size() + "  " + estimatedTime + " seconds");
-			}
+			
 		}
 		return globalCommunities;
 	}

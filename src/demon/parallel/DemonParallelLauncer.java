@@ -35,6 +35,8 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 	@SuppressWarnings("rawtypes")
 	@Shared
 	HashMap[] partitions;
+	@Shared
+	static String[] arg;
 
 	public void main() throws IOException {
 
@@ -42,12 +44,12 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		 * double epsilon = 0; do { runExperiment(epsilon); epsilon = epsilon +
 		 * 0.1; } while (epsilon <= 1.0);
 		 */
-		runExperiment(0.7);
+		runExperiment();
 
 	}
 
 	@SuppressWarnings("unchecked")
-	private void runExperiment(double epsilon) throws IOException {
+	private void runExperiment() throws IOException {
 		// TODO Auto-generated method stub
 		double startTime = System.nanoTime();
 		requestArray = new ArrayList[PCJ.threadCount()];
@@ -61,17 +63,32 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 
 		/* master thread partitions the graph */
 		if (PCJ.myId() == 0) {
-			double starttime1 = System.nanoTime();
-			GraphLoader graphLoader = new GraphLoader("com-amazon.ungraph.txt");
+
+			GraphLoader graphLoader = new GraphLoader(arg[0]);
 			Partitioner partitioner = new Partitioner(graphLoader.getGraph());
-		
-			  partitions = partitioner.metisPartitioning(
-			  "amazon4weighted.txt",
-			 graphLoader.getVertexExistenceTable());
+
+			switch (Integer.parseInt(arg[1])) {
+			case 1:
+				partitions = partitioner.metisPartitioning(arg[2], graphLoader.getVertexExistenceTable());
+				break;
+			case 2:
+				partitions = partitioner.degreeBalancedBfsPartitioning();
+				break;
+			case 3:
+				partitions = partitioner.bfsPartitioning();
+				break;
+			case 4:
+				partitions = partitioner.randomPartitioning();
+				break;
+			default:
+				partitions = partitioner.degreeBalancedBfsPartitioning();
+				break;
+			}
+
 			/*
-				partitions = partitioner.degreeBalancedBfsPartitioning(); */
-			double estimatedTime1 = (System.nanoTime() - starttime1) / 1000000000.;
-			System.out.println("Total Partitioning Time:" + estimatedTime1);
+			 * 
+			 */
+
 		}
 		PCJ.barrier();
 
@@ -92,7 +109,7 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		DemonParallel<Integer> demon = new DemonParallel<Integer>(requestArray, responseArray, requests, responses,
 				sendReceiveRequest, sendReceiveResponse, packetRequest, packetResponse);
 
-		demon.execute(partition, epsilon, 1);
+		demon.execute(partition, Double.parseDouble(arg[3]), Integer.parseInt(arg[4]), Integer.parseInt(arg[5]));
 		globalCommunities = demon.getGlobalCommunities();
 
 		//
@@ -101,14 +118,26 @@ public class DemonParallelLauncer extends Storage implements StartPoint {
 		globalCommunities = func.naiveGlobalMerge();
 
 		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time Thread:" + PCJ.myId() + "   " + estimatedTime);
+		if (PCJ.myId() == 0) {
+			System.out.println("Total Time :" + estimatedTime);
+		}
 		// System.out.println(globalCommunities.getCommunities());
 	}
 
+	/**
+	 * 
+	 * @param filename,
+	 *            partitioning type, metis filename, merge factor, merging type,
+	 *            communication type, number of processors
+	 */
 	public static void main(String[] args) {
-		String[] nodes = new String[] {"localhost","localhost","localhost","localhost"};
 
-		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, "nodes.txt");
+		String[] nodes = new String[Integer.parseInt(args[6])];
+		for (int i = 0; i < nodes.length; i++) {
+			nodes[i] = "trabzon";
+		}
+		arg = args;
+		PCJ.deploy(DemonParallelLauncer.class, DemonParallelLauncer.class, nodes);
 
 	}
 }

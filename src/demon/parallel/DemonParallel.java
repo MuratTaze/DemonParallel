@@ -225,8 +225,7 @@ public class DemonParallel<T> {
 			}
 			i = i + 1;
 		}
-		// System.out.println("Size of sent: " + sent + " Size of fetched: " +
-		// fetched);
+
 	}
 
 	@SuppressWarnings({ "unused", "unchecked" })
@@ -535,9 +534,6 @@ public class DemonParallel<T> {
 		/* lets fetch computed related degrees */
 		ArrayList[] computedDegrees = performDegreeComm(partition);
 
-		// System.out.println("Time for degree comm.: " + estimatedTime + "
-		// seconds");
-
 		/* compare degrees with the list of each key */
 		RequestPacket[] requestPackets = new RequestPacket[PCJ.threadCount()];
 		ResponsePacket[] responsePackets = new ResponsePacket[PCJ.threadCount()];
@@ -688,10 +684,11 @@ public class DemonParallel<T> {
 	 * @param partition
 	 * @param mergeFactor
 	 * @param mergingType
+	 * @param commType
 	 * @throws IOException
 	 */
 	public void execute(HashMap<Vertex<Integer>, HashSet<Vertex<Integer>>> partition, double mergeFactor,
-			int mergingType) throws IOException {
+			int mergingType, int commType) throws IOException {
 		map = new HashMap<Integer, HashSet<Integer>>();// actual graph used in
 														// label propagation
 
@@ -703,22 +700,25 @@ public class DemonParallel<T> {
 			abc++;
 		}
 
-		System.out.println("Thread:" + PCJ.myId() + " " + partition.size());
-		double startTime = System.nanoTime();
-		//degreeBasedRemoteAccess(partition);
-		//neigborlistBasedRemoteAccess(partition);
-		  connectionBasedRemoteAccess(partition);
+		switch (commType) {
+		case 1:
+			connectionBasedRemoteAccess(partition);
+			break;
+		case 2:
+			neigborlistBasedRemoteAccess(partition);
+			break;
+		case 3:
+			degreeBasedRemoteAccess(partition);
+			break;
+		default:
+			degreeBasedRemoteAccess(partition);
+			break;
+		}
+
 		partition = null;
-		
-		double estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		// if (PCJ.myId() == 0)
-		System.out.println("Total Time for Remote Access: " + estimatedTime + " seconds");
 
 		int count = 0;
 		pool = new CommunityList<Integer>();
-
-		estimatedTime = 0;
-		startTime = System.nanoTime();
 
 		for (Integer vertex : vertexList) {
 
@@ -740,11 +740,7 @@ public class DemonParallel<T> {
 				pool.getCommunities().add(localCommunity);
 			}
 		}
-		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		System.out.println("Total Time for LP: " + " Thread:" + PCJ.myId() + "  "+ estimatedTime);
-		// long startTime = System.nanoTime();
-		startTime = System.nanoTime();
-		int pool_size_before_merge = pool.getCommunities().size();
+
 		Collections.sort(pool.getCommunities(), Collections.reverseOrder());
 		int a = 0;
 		/* create CM object to merge communities found */
@@ -753,21 +749,19 @@ public class DemonParallel<T> {
 			c.setIndex(a);
 			a++;
 		}
-		if (mergingType == 1) {
-
+		switch (mergingType) {
+		case 1:
 			merger.improvedGraphBasedMerge(mergeFactor);
-		} else {
+			break;
+		case 2:
 			merger.quadraticMerge(mergeFactor);
+			break;
+		default:
+			break;
 		}
 
 		pool = merger.cleanPool(pool);
-		// System.out.println("Number of communities after merge is " +
-		// pool.getCommunities().size());
-		estimatedTime = (System.nanoTime() - startTime) / 1000000000.;
-		// if (PCJ.myId() == 0)
-		System.out.println("Total Time for Merge: " + " Thread:" + PCJ.myId() + "  " + "  pool size before merge:"
-				+ pool_size_before_merge + " pool size after merge:" + pool.getCommunities().size() + "  "
-				+ +estimatedTime + " seconds");
+
 	}
 
 	/**

@@ -1,0 +1,30 @@
+#Format is given below...
+#filename, partitioning type, metis filename, merge factor, merging type, communication type, number of processors
+#
+# Below lines are to observe effects of partitioning. Metis - Degree Balanced BFS - BFS - Random ------respectively.
+#
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 1 amazon4weighted.txt 0.7 1 1 4'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 1 amazon6weighted.txt 0.7 1 1 6'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 1 amazon8weighted.txt 0.7 1 1 8'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 1 amazon10weighted.txt 0.7 1 1 10'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 1 amazon12weighted.txt 0.7 1 1 12'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 2 amazon4weighted.txt 0.7 1 1 4'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 2 amazon6weighted.txt 0.7 1 1 6'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 2 amazon8weighted.txt 0.7 1 1 8'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 2 amazon10weighted.txt 0.7 1 1 10'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 2 amazon12weighted.txt 0.7 1 1 12'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 3 amazon4weighted.txt 0.7 1 1 4'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 3 amazon6weighted.txt 0.7 1 1 6'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 3 amazon8weighted.txt 0.7 1 1 8'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 3 amazon10weighted.txt 0.7 1 1 10'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 3 amazon12weighted.txt 0.7 1 1 12'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 4 amazon4weighted.txt 0.7 1 1 4'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 4 amazon6weighted.txt 0.7 1 1 6'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 4 amazon8weighted.txt 0.7 1 1 8'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 4 amazon10weighted.txt 0.7 1 1 10'
+mpiexec -hostfile nodes.unique bash -c 'java -d64 -Xnoclassgc -Xrs -cp Demon.jar  demon.parallel.DemonParallelLauncer com-amazon.ungraph.txt 4 amazon12weighted.txt 0.7 1 1 12'
+
+
+
+
+
